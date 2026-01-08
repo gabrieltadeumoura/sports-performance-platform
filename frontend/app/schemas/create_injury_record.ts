@@ -21,10 +21,23 @@ export const createInjuryRecordSchema = z.object({
   actualRecovery: z.number().nullable().optional(),
   treatmentProtocol: z.string(),
   status: z.enum(Object.values(StatusInjuryRecordEnum)),
-  injuryDate: z.string(),
-  recoveryDate: z.string().nullable().optional(),
+  injuryDate: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), 'Data da lesão inválida')
+    .transform((val) => {
+      const date = new Date(val);
+      return date.toISOString();
+    }),
+  recoveryDate: z
+    .string()
+    .nullable()
+    .optional()
+    .refine((val) => !val || !isNaN(Date.parse(val)), 'Data de recuperação inválida')
+    .transform((val) => {
+      if (!val) return null;
+      const date = new Date(val);
+      return date.toISOString();
+    }),
 });
 
-export type CreateInjuryRecordFormData = z.infer<
-  typeof createInjuryRecordSchema
->;
+export type CreateInjuryRecordFormData = z.infer<typeof createInjuryRecordSchema>;

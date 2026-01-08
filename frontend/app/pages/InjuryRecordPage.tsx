@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { getStatusColor } from '@/utils/getStatusColor';
 import { getSeverityColor } from '@/utils/getSeverityColor';
@@ -8,7 +8,6 @@ import { getStatusText } from '@/utils/getStatusText';
 import { getSeverityText } from '@/utils/getSeverityText';
 import HeaderInjuryRecord from '../components/HeaderInjuryRecord';
 import { useGetInjuryRecords } from '@/hooks/useGetInjuryRecord';
-import { FormattedInjuryRecord } from '../types/AthleteType';
 
 import {
   Select,
@@ -30,9 +29,6 @@ import {
 import { Button } from '@/components/ui/button';
 
 const InjuryRecordPage = () => {
-  const [filteredInjuries, setFilteredInjuries] = useState<
-    FormattedInjuryRecord[]
-  >([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
@@ -48,7 +44,7 @@ const InjuryRecordPage = () => {
     Boolean
   );
 
-  useEffect(() => {
+  const filteredInjuries = useMemo(() => {
     let filtered = injuries;
 
     if (searchTerm) {
@@ -76,8 +72,8 @@ const InjuryRecordPage = () => {
       filtered = filtered.filter((injury) => injury.team === teamFilter);
     }
 
-    setFilteredInjuries(filtered);
-  }, [searchTerm, statusFilter, severityFilter, teamFilter, injuries]);
+    return filtered;
+  }, [injuries, searchTerm, statusFilter, severityFilter, teamFilter]); 
 
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('pt-BR', {

@@ -1,5 +1,5 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import { RiskLevelEnum } from '../../app/enums/risk_level_enum.js'
+import { StatusAthleteEnum } from '../../app/enums/status_athlete_enum.js'
 
 export default class extends BaseSchema {
   protected tableName = 'athletes'
@@ -15,15 +15,13 @@ export default class extends BaseSchema {
         .onDelete('CASCADE')
         .notNullable()
       table.string('name').notNullable()
-      table.string('position').notNullable()
-      table.integer('age').notNullable()
-      table.integer('height').notNullable()
-      table.integer('weight').notNullable()
-      table.string('team').notNullable()
-      table.boolean('is_active').notNullable()
-      table.enum('risk_level', Object.values(RiskLevelEnum)).notNullable()
-      table.string('biomechanics_profile').notNullable()
-      table.string('current_injuries').notNullable()
+      table.string('sport').notNullable()
+      table.integer('birth_date').notNullable()
+      table.integer('height').nullable()
+      table.integer('weight').nullable()
+      table.enum('status', Object.values(StatusAthleteEnum)).notNullable()
+      table.string('phone').nullable()
+      table.string('email').notNullable()
       table.timestamp('created_at')
       table.timestamp('updated_at')
     })

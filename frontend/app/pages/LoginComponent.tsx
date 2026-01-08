@@ -135,7 +135,7 @@ const LoginComponent = () => {
               <Button
                 variant="ghost"
                 className="w-full h-11 text-white bg-gradient-to-r hover:from-blue-600 hover:to-green-600 transition-all duration-200 cursor-pointer"
-                onClick={() => console.log("Redirect to register")}
+                onClick={() => router.push("/register")}
               >
                 <Trophy className="w-4 h-4 mr-2 text-yellow-400" />
                 Criar nova conta

@@ -1,7 +1,7 @@
-import PhysicalTestPage from '@/app/pages/PhysicalTest';
+//import PhysicalTestPage from '@/app/pages/PhysicalTest';
 
 const PhysicalTest = () => {
-  return <PhysicalTestPage />;
+ // return <PhysicalTestPage />;
 };
 
 export default PhysicalTest;

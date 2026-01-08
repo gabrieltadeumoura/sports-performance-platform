@@ -19,7 +19,7 @@ const HeaderDashboard = () => {
             </div>
             <Badge
               variant="outline"
-              className="text-green-600 border-green-200 mr-6"
+              className="text-green-600 border-green-500 mr-6"
             >
               <Activity className="w-4 h-4 mr-2" />
               Sistema Online

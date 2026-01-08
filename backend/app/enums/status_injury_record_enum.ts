@@ -1,5 +1,5 @@
 export enum StatusInjuryRecordEnum {
-  ACTIVE = 'active',
-  RECOVERING = 'recovering',
-  RECOVERED = 'recovered',
+	ACTIVE = 'active',
+	RECOVERING = 'recovering',
+	RECOVERED = 'recovered',
 }

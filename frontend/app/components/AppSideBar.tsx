@@ -44,11 +44,6 @@ const items = [
     icon: Eye,
   },
   {
-    title: 'Physical Test',
-    url: '/physical-test',
-    icon: Gauge,
-  },
-  {
     title: 'Settings',
     url: '#',
     icon: Settings,
