@@ -6,7 +6,7 @@ export const UpdateTreatmentPlanSchema = vine.object({
 	diagnosis: vine.string().trim().minLength(5).optional(),
 	objectives: vine.string().trim().minLength(10).optional(),
 	notes: vine.string().trim().optional(),
-	startDate: vine.date().optional(),
-	endDate: vine.date().optional(),
+	startDate: vine.date({ formats: ['iso8601'] }).optional(),
+	endDate: vine.date({ formats: ['iso8601'] }).optional(),
 	status: vine.enum(Object.values(TreatmentPlanStatusEnum)).optional(),
 })

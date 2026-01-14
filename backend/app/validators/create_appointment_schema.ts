@@ -5,7 +5,7 @@ import { AppointmentTypeEnum } from '../enums/appointment_type_enum.js'
 export const CreateAppointmentSchema = vine.object({
 	athleteId: vine.number().positive(),
 	treatmentPlanId: vine.number().positive().optional(),
-	appointmentDate: vine.date(),
+	appointmentDate: vine.date({ formats: ['iso8601'] }),
 	durationMinutes: vine.number().positive().optional(),
 	type: vine.enum(Object.values(AppointmentTypeEnum)),
 	status: vine.enum(Object.values(AppointmentStatusEnum)).optional(),

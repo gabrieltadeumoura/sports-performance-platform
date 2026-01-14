@@ -170,15 +170,45 @@ export default class AppointmentsController {
 			return response.status(403).json({ message: 'Acesso negado' })
 		}
 
-		const updated = await AppointmentService.reschedule(
-			params.id,
-			new Date(newDate),
-		)
+		if (!newDate) {
+			return response.status(400).json({ message: 'newDate é obrigatório' })
+		}
+
+		let appointmentDate: Date
+		try {
+			appointmentDate = new Date(newDate)
+			if (isNaN(appointmentDate.getTime())) {
+				return response.status(400).json({ message: 'Data inválida' })
+			}
+		} catch (error) {
+			return response.status(400).json({ message: 'Data inválida' })
+		}
+
+		const updated = await AppointmentService.reschedule(params.id, appointmentDate)
 
 		return response.json({
 			status: 200,
 			message: 'Appointment rescheduled',
 			appointment: updated,
 		})
+	}
+
+	public async listByMonth({ auth, request, response }: HttpContext) {
+		const userId = auth.user!.id
+		const { year, month } = request.qs()
+
+		if (!year || !month) {
+			return response.status(400).json({
+				message: 'year e month são obrigatórios',
+			})
+		}
+
+		const appointments = await AppointmentService.listByMonth(
+			userId,
+			Number(year),
+			Number(month),
+		)
+
+		return response.json({ status: 200, appointments })
 	}
 }

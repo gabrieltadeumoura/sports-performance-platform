@@ -13,22 +13,19 @@ export default class AthletesController {
 
 		const data = request.only([
 			'name',
-			'position',
-			'age',
+			'sport',
+			'birthDate',
 			'height',
 			'weight',
-			'team',
-			'isActive',
-			'riskLevel',
-			'biomechanicsProfile',
-			'currentInjuries',
+			'status',
+			'phone',
+			'email',
 		])
 
 		const payload = await vine.validate({ schema: CreateAthleteSchema, data })
 
 		const athlete = await AthleteService.create({
 			...payload,
-			biomechanicsProfile: JSON.stringify(payload.biomechanicsProfile),
 			userId: auth.user!.id,
 		})
 
@@ -56,15 +53,13 @@ export default class AthletesController {
 
 		const data = request.only([
 			'name',
-			'position',
-			'age',
+			'sport',
+			'birthDate',
 			'height',
 			'weight',
-			'team',
-			'isActive',
-			'riskLevel',
-			'biomechanicsProfile',
-			'currentInjuries',
+			'status',
+			'phone',
+			'email',
 		])
 
 		const payload = await vine.validate({ schema: CreateAthleteSchema, data })
@@ -75,10 +70,7 @@ export default class AthletesController {
 			return response.status(403).json({ message: 'Acesso negado' })
 		}
 
-		athlete.merge({
-			...payload,
-			biomechanicsProfile: JSON.stringify(payload.biomechanicsProfile),
-		})
+		athlete.merge(payload)
 
 		await athlete.save()
 
@@ -146,15 +138,14 @@ export default class AthletesController {
 			.select([
 				'id',
 				'name',
-				'position',
-				'team',
-				'age',
+				'sport',
+				'birthDate',
 				'height',
 				'weight',
-				'riskLevel',
-				'isActive',
+				'status',
+				'phone',
+				'email',
 			])
-			.where('isActive', true)
 			.where('userId', userId)
 			.preload('injuryRecords', (injuryQuery) => {
 				injuryQuery.select([
@@ -174,7 +165,6 @@ export default class AthletesController {
 				])
 			})
 			.orderBy('created_at', 'desc')
-			.limit(5)
 
 		const result = {
 			athletes,
@@ -207,13 +197,13 @@ export default class AthletesController {
 			.select([
 				'id',
 				'name',
-				'position',
-				'team',
-				'age',
+				'sport',
+				'birthDate',
 				'height',
 				'weight',
-				'riskLevel',
-				'isActive',
+				'status',
+				'phone',
+				'email',
 				'userId',
 			])
 			.where('id', athleteId)
@@ -221,10 +211,8 @@ export default class AthletesController {
 			.preload('injuryRecords')
 			.firstOrFail()
 
-		const injuryRisk = athlete.calculateInjuryRisk()
 		const result = {
-			...athlete.serialize(),
-			injury_risk_score: injuryRisk,
+			athlete: athlete.serialize(),
 			cached_at: new Date().toISOString(),
 		}
 
@@ -235,64 +223,4 @@ export default class AthletesController {
 		return response.header('X-Cache', 'MISS').json(result)
 	}
 
-	public async analyzeBiomechanicalProfile({
-		auth,
-		params,
-		response,
-	}: HttpContext) {
-		const userId = auth.user!.id
-		const cacheKey = `athlete:${params.id}:biomechanics:${userId}`
-
-		try {
-			const cached = await redis.get(cacheKey)
-			if (cached) {
-				return response.header('X-Cache', 'HIT').json(JSON.parse(cached))
-			}
-		} catch (error) {}
-
-		const athlete = await Athlete.query()
-			.where('id', params.id)
-			.where('userId', userId)
-			.firstOrFail()
-		const profile = JSON.parse(athlete.biomechanicsProfile || '{}')
-
-		const analysis = {
-			athlete_id: athlete.id,
-			asymmetry_score: profile.asymmetry || 0,
-			flexibility_score: profile.flexibility || 0,
-			strength_balance: profile.strength_balance || 0,
-			movement_quality: profile.movement_quality || 0,
-			recommendations: this.generateRehabilitationSuggestions(profile),
-			injury_risk: athlete.calculateInjuryRisk(),
-			next_assessment: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-			cached_at: new Date().toISOString(),
-		}
-
-		try {
-			await redis.setex(cacheKey, 1800, JSON.stringify(analysis))
-		} catch (error) {}
-
-		return response.header('X-Cache', 'MISS').json(analysis)
-	}
-
-	private generateRehabilitationSuggestions(profile: any): string[] {
-		const suggestions: string[] = []
-
-		if (profile.asymmetry > 15) {
-			suggestions.push('Unilateral strength exercises')
-			suggestions.push('Stretching focused on dominant side')
-		}
-
-		if (profile.flexibility < 70) {
-			suggestions.push('Daily flexibility routine')
-			suggestions.push('Myofascial release before training')
-		}
-
-		if (profile.strength_imbalance > 20) {
-			suggestions.push('Eccentric strength training')
-			suggestions.push('Advanced proprioceptive training')
-		}
-
-		return suggestions
-	}
 }

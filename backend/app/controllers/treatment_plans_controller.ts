@@ -10,16 +10,7 @@ export default class TreatmentPlansController {
 	public async create({ auth, request, response }: HttpContext) {
 		const userId = auth.user!.id
 
-		const data = request.only([
-			'athleteId',
-			'injuryRecordId',
-			'diagnosis',
-			'objectives',
-			'notes',
-			'startDate',
-			'endDate',
-			'status',
-		])
+		const data = request.all()
 
 		const payload = await vine.validate({
 			schema: CreateTreatmentPlanSchema,
@@ -31,8 +22,17 @@ export default class TreatmentPlansController {
 			return response.status(403).json({ message: 'Acesso negado' })
 		}
 
-		const treatmentPlan = await TreatmentPlanService.create({
+		const toCreate: any = {
 			...payload,
+			startDate: payload.startDate ? new Date(payload.startDate) : new Date(),
+		}
+
+		if (payload.endDate) {
+			toCreate.endDate = new Date(payload.endDate)
+		}
+
+		const treatmentPlan = await TreatmentPlanService.create({
+			...toCreate,
 			userId,
 		})
 
@@ -82,15 +82,7 @@ export default class TreatmentPlansController {
 	public async update({ auth, params, request, response }: HttpContext) {
 		const userId = auth.user!.id
 
-		const data = request.only([
-			'injuryRecordId',
-			'diagnosis',
-			'objectives',
-			'notes',
-			'startDate',
-			'endDate',
-			'status',
-		])
+		const data = request.all()
 
 		const payload = await vine.validate({
 			schema: UpdateTreatmentPlanSchema,
@@ -104,7 +96,17 @@ export default class TreatmentPlansController {
 			return response.status(403).json({ message: 'Acesso negado' })
 		}
 
-		const updated = await TreatmentPlanService.update(params.id, payload)
+		const toUpdate: any = { ...payload }
+
+		if (payload.startDate) {
+			toUpdate.startDate = new Date(payload.startDate)
+		}
+
+		if (payload.endDate) {
+			toUpdate.endDate = new Date(payload.endDate)
+		}
+
+		const updated = await TreatmentPlanService.update(params.id, toUpdate)
 
 		return response.json({
 			status: 200,

@@ -9,27 +9,43 @@ import { CreateInjuryRecordSchema } from '#validators/create_injury_record_schem
 import DashboardController from './dashboard_controller.js'
 
 export default class InjuryRecordsController {
+	public async list({ auth, response }: HttpContext) {
+		const userId = auth.user!.id
+
+		const athletes = await Athlete.query().where('userId', userId).select('id')
+		const athleteIds = athletes.map((a) => a.id)
+
+		const injuryRecords = await InjuryRecord.query()
+			.whereIn('athleteId', athleteIds)
+			.preload('athlete')
+			.orderBy('injuryDate', 'desc')
+
+		return response.json({
+			status: 200,
+			data: injuryRecords,
+		})
+	}
+
 	public async create({ response, request }: HttpContext) {
-		const data = request.only([
-			'athleteId',
-			'injuryType',
-			'bodyPart',
-			'severity',
-			'cause',
-			'expectedRecovery',
-			'actualRecovery',
-			'treatmentProtocol',
-			'status',
-			'injuryDate',
-			'recoveryDate',
-		])
+		const data = request.all()
 
 		const payload = await vine.validate({
 			schema: CreateInjuryRecordSchema,
 			data,
 		})
 
-		const injuryRecord = await InjuryRecordService.create(payload)
+		const toCreate: any = {
+			...payload,
+			injuryDate: payload.injuryDate ? new Date(payload.injuryDate) : new Date(),
+		}
+
+		if (payload.recoveryDate) {
+			toCreate.recoveryDate = new Date(payload.recoveryDate)
+		} else {
+			toCreate.recoveryDate = null
+		}
+
+		const injuryRecord = await InjuryRecordService.create(toCreate)
 
 		const athlete = await Athlete.find(injuryRecord.athleteId)
 		if (athlete) {

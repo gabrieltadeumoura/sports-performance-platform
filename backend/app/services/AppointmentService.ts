@@ -114,4 +114,20 @@ export class AppointmentService {
 			.preload('user')
 			.firstOrFail()
 	}
+
+	static async listByMonth(
+		userId: number,
+		year: number,
+		month: number,
+	): Promise<Appointment[]> {
+		const startDate = DateTime.fromObject({ year, month, day: 1 }).startOf('day')
+		const endDate = startDate.endOf('month')
+
+		return await Appointment.query()
+			.where('userId', userId)
+			.whereBetween('appointmentDate', [startDate.toSQL()!, endDate.toSQL()!])
+			.preload('athlete')
+			.preload('treatmentPlan')
+			.orderBy('appointmentDate', 'asc')
+	}
 }

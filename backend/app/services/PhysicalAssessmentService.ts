@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import PhysicalAssessment from '#models/physical_assessment'
+import Athlete from '#models/athlete'
 import type { AssessmentTypeEnum } from '../enums/type_physical_assessment.js'
 
 export class PhysicalAssessmentService {
@@ -70,5 +71,17 @@ export class PhysicalAssessmentService {
 
 	static async findById(id: number): Promise<PhysicalAssessment> {
 		return await PhysicalAssessment.findOrFail(id)
+	}
+
+	static async list(userId: number): Promise<PhysicalAssessment[]> {
+		const athletes = await Athlete.query().where('userId', userId).select('id')
+		const athleteIds = athletes.map((a) => a.id)
+
+		const assessments = await PhysicalAssessment.query()
+			.whereIn('athleteId', athleteIds)
+			.preload('athlete')
+			.orderBy('assessmentDate', 'desc')
+
+		return assessments
 	}
 }

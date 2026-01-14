@@ -73,6 +73,7 @@ router
 
 		router
 			.group(() => {
+				router.get('/', [InjuryRecordsController, 'list'])
 				router.post('/', [InjuryRecordsController, 'create'])
 				router.patch('/:id', [InjuryRecordsController, 'update'])
 				router.delete('/:id', [InjuryRecordsController, 'delete'])
@@ -81,6 +82,7 @@ router
 
 		router
 			.group(() => {
+				router.get('/', [PhysicalAssessmentsController, 'list'])
 				router.post('/', [PhysicalAssessmentsController, 'create'])
 				router.get('/athlete/:athleteId', [
 					PhysicalAssessmentsController,
@@ -266,6 +268,7 @@ router
 			.group(() => {
 				router.post('/', [AppointmentsController, 'create'])
 				router.get('/', [AppointmentsController, 'list'])
+				router.get('/month', [AppointmentsController, 'listByMonth'])
 				router.get('/athlete/:athleteId', [
 					AppointmentsController,
 					'listByAthlete',

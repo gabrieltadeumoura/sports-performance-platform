@@ -11,11 +11,11 @@ export class InjuryRecordService {
 		severity: SeverityInjuryEnum
 		cause: string
 		expectedRecovery: number
-		actualRecovery: number
+		actualRecovery?: number | null
 		treatmentProtocol: string
 		status: StatusInjuryRecordEnum
 		injuryDate: Date
-		recoveryDate: Date
+		recoveryDate?: Date | null
 	}): Promise<InjuryRecord> {
 		const injuryRecord = new InjuryRecord()
 
@@ -25,30 +25,26 @@ export class InjuryRecordService {
 		injuryRecord.severity = payload.severity
 		injuryRecord.cause = payload.cause
 		injuryRecord.expectedRecovery = payload.expectedRecovery
-		injuryRecord.actualRecovery = payload.actualRecovery
+		injuryRecord.actualRecovery = payload.actualRecovery ?? null
 		injuryRecord.treatmentProtocol = payload.treatmentProtocol
 		injuryRecord.status = payload.status
 		injuryRecord.injuryDate = DateTime.fromJSDate(payload.injuryDate)
-		injuryRecord.recoveryDate = DateTime.fromJSDate(payload.recoveryDate)
+		injuryRecord.recoveryDate = payload.recoveryDate
+			? DateTime.fromJSDate(payload.recoveryDate)
+			: null
 
 		await injuryRecord.save()
 
 		return injuryRecord
 	}
 
-	// static async update(
-	//   id: number,
-	//   payload: {
-	//     injuryType?: string
-	//     severity?: SeverityInjuryEnum
-	//     actualRecovery?: number
-	//     status?: StatusInjuryRecordEnum
-	//     injuryDate?: Date
-	//   }
-	// ): Promise<InjuryRecord | null> {
-	//   const athlete = Athlete.find(id)
-	//   if(!athlete) return null
+	static async findByAthlete(athleteId: number): Promise<InjuryRecord[]> {
+		return await InjuryRecord.query()
+			.where('athleteId', athleteId)
+			.orderBy('injuryDate', 'desc')
+	}
 
-	// }
-	// return
+	static async findById(id: number): Promise<InjuryRecord> {
+		return await InjuryRecord.findOrFail(id)
+	}
 }

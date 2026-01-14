@@ -46,9 +46,9 @@ export default class DashboardController {
 			const [
 				totalAthletesResult,
 				activeAthletesResult,
-				highRiskAthletesResult,
-				criticalFatigueAthletes,
-				avgVo2,
+				treatmentAthletesResult,
+				recentInjuriesResult,
+				recentAssessmentsResult,
 			] = await Promise.all([
 				db
 					.from('athletes')
@@ -58,41 +58,45 @@ export default class DashboardController {
 				db
 					.from('athletes')
 					.where('user_id', userId)
-					.where('is_active', true)
+					.where('status', 'active')
 					.count('* as total')
 					.first(),
 				db
 					.from('athletes')
 					.where('user_id', userId)
-					.whereIn('risk_level', ['high', 'critical'])
+					.where('status', 'treatment')
 					.count('* as total')
 					.first(),
 				db
-					.from('vital_signs')
-					.join('athletes', 'athletes.id', 'vital_signs.athlete_id')
+					.from('injury_records')
+					.join('athletes', 'athletes.id', 'injury_records.athlete_id')
 					.where('athletes.user_id', userId)
-					.where('vital_signs.fatigue_score', '>', 85)
+					.where('injury_records.status', 'active')
 					.where(
-						'vital_signs.created_at',
+						'injury_records.created_at',
 						'>',
-						new Date(Date.now() - 30 * 60 * 1000),
+						new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
 					)
 					.countDistinct('athletes.id as total')
 					.first(),
 				db
-					.from('vital_signs')
-					.join('athletes', 'athletes.id', 'vital_signs.athlete_id')
+					.from('physical_assessments')
+					.join('athletes', 'athletes.id', 'physical_assessments.athlete_id')
 					.where('athletes.user_id', userId)
-					.avg('vo2_max as avg_vo2')
-					.whereNotNull('vo2_max')
+					.where(
+						'physical_assessments.created_at',
+						'>',
+						new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+					)
+					.count('* as total')
 					.first(),
 			])
 			const data = {
 				total_athletes: Number(totalAthletesResult?.total || 0),
 				active_athletes: Number(activeAthletesResult?.total || 0),
-				high_risk_athletes: Number(highRiskAthletesResult?.total || 0),
-				critical_fatigue_athletes: Number(criticalFatigueAthletes?.total || 0),
-				avg_vo2_max: Math.round(Number(avgVo2?.avg_vo2 || 0)),
+				high_risk_athletes: Number(treatmentAthletesResult?.total || 0),
+				critical_fatigue_athletes: Number(recentInjuriesResult?.total || 0),
+				avg_vo2_max: 0,
 				updated_at: new Date().toISOString(),
 			}
 
@@ -102,6 +106,7 @@ export default class DashboardController {
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
+			console.error('Error fetching dashboard overview:', error)
 			return response.status(500).json({
 				error: 'Failed to fetch dashboard metrics',
 				message: 'An error occurred while retrieving dashboard data',
@@ -123,18 +128,17 @@ export default class DashboardController {
 		try {
 			const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
-			const dailyMetrics = await db
-				.from('vital_signs')
-				.join('athletes', 'athletes.id', 'vital_signs.athlete_id')
-				.select(db.raw('DATE(vital_signs.created_at) as date'))
-				.avg('vital_signs.fatigue_score as avg_fatigue')
-				.avg('vital_signs.vo2_max as avg_vo2')
-				.avg('vital_signs.heart_rate as avg_heart_rate')
-				.count('vital_signs.id as total_measurements')
+			const assessmentTrends = await db
+				.from('physical_assessments')
+				.join('athletes', 'athletes.id', 'physical_assessments.athlete_id')
+				.select(db.raw('DATE(physical_assessments.created_at) as date'))
+				.avg('physical_assessments.body_fat_percentage as avg_body_fat')
+				.avg('physical_assessments.weight as avg_weight')
+				.count('physical_assessments.id as total_assessments')
 				.where('athletes.user_id', userId)
-				.where('vital_signs.created_at', '>=', sevenDaysAgo)
-				.groupByRaw('DATE(vital_signs.created_at)')
-				.orderByRaw('DATE(vital_signs.created_at)')
+				.where('physical_assessments.created_at', '>=', sevenDaysAgo)
+				.groupByRaw('DATE(physical_assessments.created_at)')
+				.orderByRaw('DATE(physical_assessments.created_at)')
 
 			const injuryTrends = await db
 				.from('injury_records')
@@ -146,13 +150,23 @@ export default class DashboardController {
 				.groupByRaw('DATE(injury_records.created_at)')
 				.orderByRaw('DATE(injury_records.created_at)')
 
+			const treatmentTrends = await db
+				.from('treatment_plans')
+				.join('athletes', 'athletes.id', 'treatment_plans.athlete_id')
+				.select(db.raw('DATE(treatment_plans.created_at) as date'))
+				.count('treatment_plans.id as new_treatments')
+				.where('athletes.user_id', userId)
+				.where('treatment_plans.created_at', '>=', sevenDaysAgo)
+				.groupByRaw('DATE(treatment_plans.created_at)')
+				.orderByRaw('DATE(treatment_plans.created_at)')
+
 			const data = {
-				daily_metrics: dailyMetrics.map((metric) => ({
+				daily_metrics: assessmentTrends.map((metric) => ({
 					date: metric.date,
-					avg_fatigue: Math.round(Number(metric.avg_fatigue || 0)),
-					avg_vo2: Math.round(Number(metric.avg_vo2 || 0)),
-					avg_heart_rate: Math.round(Number(metric.avg_heart_rate || 0)),
-					total_measurements: Number(metric.total_measurements),
+					avg_fatigue: 0,
+					avg_vo2: 0,
+					avg_heart_rate: 0,
+					total_measurements: Number(metric.total_assessments),
 				})),
 				injury_trends: injuryTrends.map((injury) => ({
 					date: injury.date,
@@ -168,6 +182,7 @@ export default class DashboardController {
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
+			console.error('Error fetching dashboard trends:', error)
 			return response.status(500).json({
 				error: 'Failed to fetch trending metrics',
 				message: 'An error occurred while retrieving trend data',
@@ -188,46 +203,13 @@ export default class DashboardController {
 
 		try {
 			const now = new Date()
-			const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000)
+			const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
-			const criticalFatigueAthletes = await db
-				.from('vital_signs')
-				.join('athletes', 'athletes.id', 'vital_signs.athlete_id')
-				.select([
-					'athletes.id',
-					'athletes.name',
-					'athletes.position',
-					'vital_signs.fatigue_score',
-					'vital_signs.created_at',
-				])
-				.where('athletes.user_id', userId)
-				.where('vital_signs.fatigue_score', '>', 85)
-				.where('vital_signs.created_at', '>', thirtyMinutesAgo)
-				.orderBy('vital_signs.fatigue_score', 'desc')
-
-			const highRiskAthletes = await db
+			const treatmentAthletes = await db
 				.from('athletes')
-				.leftJoin('vital_signs', 'athletes.id', 'vital_signs.athlete_id')
-				.select([
-					'athletes.id',
-					'athletes.name',
-					'athletes.position',
-					'athletes.risk_level',
-				])
+				.select(['athletes.id', 'athletes.name', 'athletes.status'])
 				.where('athletes.user_id', userId)
-				.where('athletes.risk_level', 'critical')
-				.where('athletes.is_active', true)
-				.where(
-					'vital_signs.created_at',
-					'>',
-					new Date(now.getTime() - 24 * 60 * 60 * 1000),
-				)
-				.groupBy([
-					'athletes.id',
-					'athletes.name',
-					'athletes.position',
-					'athletes.risk_level',
-				])
+				.where('athletes.status', 'treatment')
 
 			const recentInjuries = await db
 				.from('injury_records')
@@ -235,50 +217,73 @@ export default class DashboardController {
 				.select([
 					'athletes.id',
 					'athletes.name',
-					'athletes.position',
 					'injury_records.injury_type',
+					'injury_records.severity',
 					'injury_records.created_at',
 				])
 				.where('athletes.user_id', userId)
 				.whereIn('injury_records.status', ['active', 'recovering'])
-				.where(
+				.where('injury_records.created_at', '>', oneDayAgo)
+				.orderBy('injury_records.created_at', 'desc')
+
+			const criticalInjuries = await db
+				.from('injury_records')
+				.join('athletes', 'athletes.id', 'injury_records.athlete_id')
+				.select([
+					'athletes.id',
+					'athletes.name',
+					'injury_records.injury_type',
+					'injury_records.severity',
 					'injury_records.created_at',
-					'>',
-					new Date(now.getTime() - 24 * 60 * 60 * 1000),
-				)
+				])
+				.where('athletes.user_id', userId)
+				.whereIn('injury_records.severity', ['severe', 'critical'])
+				.whereIn('injury_records.status', ['active', 'recovering'])
+				.where('injury_records.created_at', '>', oneDayAgo)
 				.orderBy('injury_records.created_at', 'desc')
 
 			const data = {
-				critical_fatigue: criticalFatigueAthletes.map((athlete) => ({
+				critical_fatigue: criticalInjuries.map((injury) => {
+					const createdAt = injury.created_at
+						? typeof injury.created_at === 'string'
+							? new Date(injury.created_at)
+							: injury.created_at instanceof Date
+								? injury.created_at
+								: new Date(injury.created_at)
+						: new Date()
+					return {
+						athlete_id: injury.id,
+						name: injury.name,
+						injury_type: injury.injury_type,
+						alert_type: 'critical_fatigue',
+						severity: 'high',
+						time_ago: this.getTimeAgo(createdAt),
+					}
+				}),
+				high_risk_active: treatmentAthletes.map((athlete) => ({
 					athlete_id: athlete.id,
 					name: athlete.name,
-					position: athlete.position,
-					fatigue_score: athlete.fatigue_score,
-					alert_type: 'critical_fatigue',
-					severity: 'high',
-					time_ago: this.getTimeAgo(new Date(athlete.created_at)),
-				})),
-				high_risk_active: highRiskAthletes.map((athlete) => ({
-					athlete_id: athlete.id,
-					name: athlete.name,
-					position: athlete.position,
-					risk_level: athlete.risk_level,
 					alert_type: 'high_risk',
 					severity: 'medium',
 				})),
-				recent_injuries: recentInjuries.map((injury) => ({
-					athlete_id: injury.id,
-					name: injury.name,
-					position: injury.position,
-					injury_type: injury.injury_type,
-					alert_type: 'recent_injury',
-					severity: 'medium',
-					time_ago: this.getTimeAgo(new Date(injury.created_at)),
-				})),
-				total_alerts:
-					criticalFatigueAthletes.length +
-					highRiskAthletes.length +
-					recentInjuries.length,
+				recent_injuries: recentInjuries.map((injury) => {
+					const createdAt = injury.created_at
+						? typeof injury.created_at === 'string'
+							? new Date(injury.created_at)
+							: injury.created_at instanceof Date
+								? injury.created_at
+								: new Date(injury.created_at)
+						: new Date()
+					return {
+						athlete_id: injury.id,
+						name: injury.name,
+						injury_type: injury.injury_type,
+						alert_type: 'recent_injury',
+						severity: injury.severity === 'severe' || injury.severity === 'critical' ? 'high' : 'medium',
+						time_ago: this.getTimeAgo(createdAt),
+					}
+				}),
+				total_alerts: treatmentAthletes.length + recentInjuries.length,
 				updated_at: new Date().toISOString(),
 			}
 
@@ -288,6 +293,7 @@ export default class DashboardController {
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
+			console.error('Error fetching dashboard alerts:', error)
 			return response.status(500).json({
 				error: 'Failed to fetch critical alerts',
 				message: 'An error occurred while retrieving alerts',
@@ -307,68 +313,31 @@ export default class DashboardController {
 		} catch (error) {}
 
 		try {
-			const performanceByPosition = await db
+			const performanceBySport = await db
 				.from('athletes')
-				.leftJoin('vital_signs', 'athletes.id', 'vital_signs.athlete_id')
-				.select(['athletes.position'])
-				.avg('vital_signs.vo2_max as avg_vo2')
-				.avg('vital_signs.fatigue_score as avg_fatigue')
-				.count('athletes.id as total_athletes')
+				.select(['athletes.sport'])
+				.count('* as total_athletes')
 				.where('athletes.user_id', userId)
-				.where('athletes.is_active', true)
-				.where(
-					'vital_signs.created_at',
-					'>',
-					new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-				)
-				.groupBy('athletes.position')
+				.where('athletes.status', 'active')
+				.groupBy('athletes.sport')
 
-			const performanceByTeam = await db
+			const statusDistribution = await db
 				.from('athletes')
-				.leftJoin('vital_signs', 'athletes.id', 'vital_signs.athlete_id')
-				.select(['athletes.team'])
-				.avg('vital_signs.vo2_max as avg_vo2')
-				.avg('vital_signs.fatigue_score as avg_fatigue')
-				.count('athletes.id as total_athletes')
-				.where('athletes.user_id', userId)
-				.where('athletes.is_active', true)
-				.where(
-					'vital_signs.created_at',
-					'>',
-					new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-				)
-				.groupBy('athletes.team')
-
-			const riskByPosition = await db
-				.from('athletes')
-				.select(['athletes.position', 'athletes.risk_level'])
+				.select(['athletes.status'])
 				.count('* as count')
 				.where('athletes.user_id', userId)
-				.where('athletes.is_active', true)
-				.groupBy(['athletes.position', 'athletes.risk_level'])
+				.groupBy('athletes.status')
 
 			const data = {
-				by_position: performanceByPosition.map((pos) => ({
-					position: pos.position,
-					avg_vo2: Math.round(Number(pos.avg_vo2 || 0)),
-					avg_fatigue: Math.round(Number(pos.avg_fatigue || 0)),
-					total_athletes: Number(pos.total_athletes),
-					performance_score: this.calculatePerformanceScore(
-						pos.avg_vo2,
-						pos.avg_fatigue,
-					),
+				by_position: [],
+				by_team: performanceBySport.map((sport) => ({
+					team: sport.sport,
+					avg_vo2: 0,
+					avg_fatigue: 0,
+					total_athletes: Number(sport.total_athletes),
+					performance_score: 0,
 				})),
-				by_team: performanceByTeam.map((team) => ({
-					team: team.team,
-					avg_vo2: Math.round(Number(team.avg_vo2 || 0)),
-					avg_fatigue: Math.round(Number(team.avg_fatigue || 0)),
-					total_athletes: Number(team.total_athletes),
-					performance_score: this.calculatePerformanceScore(
-						team.avg_vo2,
-						team.avg_fatigue,
-					),
-				})),
-				risk_distribution: this.processRiskDistribution(riskByPosition),
+				risk_distribution: this.processStatusDistribution(statusDistribution),
 				updated_at: new Date().toISOString(),
 			}
 
@@ -378,6 +347,7 @@ export default class DashboardController {
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
+			console.error('Error fetching team performance:', error)
 			return response.status(500).json({
 				error: 'Failed to fetch team performance',
 				message: 'An error occurred while retrieving team data',
@@ -406,19 +376,20 @@ export default class DashboardController {
 		return Math.round(vo2Score + fatigueScore)
 	}
 
-	private processRiskDistribution(riskData: any[]): any {
-		const distribution: any = {}
+	private processStatusDistribution(statusData: any[]): any {
+		const distribution: any = {
+			all: {
+				active: 0,
+				treatment: 0,
+				removed: 0,
+				released: 0,
+			},
+		}
 
-		riskData.forEach((item) => {
-			if (!distribution[item.position]) {
-				distribution[item.position] = {
-					low: 0,
-					medium: 0,
-					high: 0,
-					critical: 0,
-				}
+		statusData.forEach((item) => {
+			if (distribution.all[item.status] !== undefined) {
+				distribution.all[item.status] = Number(item.count)
 			}
-			distribution[item.position][item.risk_level] = Number(item.count)
 		})
 
 		return distribution

@@ -6,6 +6,17 @@ import { PhysicalAssessmentService } from '#services/PhysicalAssessmentService'
 import { CreatePhysicalAssessmentSchema } from '#validators/create_physical_assessment_schema'
 
 export default class PhysicalAssessmentsController {
+	public async list({ auth, response }: HttpContext) {
+		const userId = auth.user!.id
+
+		const assessments = await PhysicalAssessmentService.list(userId)
+
+		return response.json({
+			status: 200,
+			data: assessments,
+		})
+	}
+
 	public async create({ auth, request, response }: HttpContext) {
 		const userId = auth.user!.id
 
