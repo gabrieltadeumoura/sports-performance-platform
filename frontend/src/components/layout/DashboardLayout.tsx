@@ -39,6 +39,9 @@ export function DashboardLayout() {
           <a href="/appointments" className="block px-2 py-1 rounded hover:bg-zinc-800">
             Atendimentos
           </a>
+          <a href="/spine" className="block px-2 py-1 rounded hover:bg-zinc-800">
+            Coluna Vertebral
+          </a>
         </nav>
       </aside>
       <main className="flex-1 flex flex-col">

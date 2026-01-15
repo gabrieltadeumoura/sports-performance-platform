@@ -7,6 +7,7 @@ import { AppointmentsPage } from '../pages/AppointmentsPage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { InjuryRecordsPage } from '../pages/InjuryRecordsPage'
 import { LoginPage } from '../pages/LoginPage'
+import { SpinePage } from '../pages/SpinePage'
 import { TreatmentsPage } from '../pages/TreatmentsPage'
 import { RegisterPage } from '../pages/RegisterPage'
 
@@ -25,6 +26,7 @@ export function AppRouter() {
         <Route path="/injury-records" element={<InjuryRecordsPage />} />
         <Route path="/treatments" element={<TreatmentsPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
+        <Route path="/spine" element={<SpinePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
