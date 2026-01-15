@@ -1,10 +1,29 @@
-import { AlertTriangle, TrendingUp, Users, Activity, Calendar } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import {
+  AlertTriangle,
+  TrendingUp,
+  Users,
+  Activity,
+  Calendar,
+  ArrowRight,
+  Heart,
+  Clock,
+} from 'lucide-react'
 import {
   useDashboardAlerts,
   useDashboardOverview,
   useDashboardTrends,
 } from '../features/dashboard/hooks'
 import { useAppointmentsByMonth } from '../features/appointments/hooks'
+import { StatsCard } from '../components/ui/stats-card'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
+import { Loading } from '../components/ui/loading'
+import { EmptyState } from '../components/ui/empty-state'
+import { Skeleton } from '../components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
 
 export function DashboardPage() {
   const { data: overview, isLoading: overviewLoading } = useDashboardOverview()
@@ -22,7 +41,7 @@ export function DashboardPage() {
     ? [
         ...alertsData.critical_fatigue.map((a) => ({
           ...a,
-          message: `Fadiga crítica: ${a.fatigue_score}%`,
+          message: `Fadiga critica: ${a.fatigue_score}%`,
         })),
         ...alertsData.high_risk_active.map((a) => ({
           ...a,
@@ -30,293 +49,374 @@ export function DashboardPage() {
         })),
         ...alertsData.recent_injuries.map((a) => ({
           ...a,
-          message: `Nova lesão: ${a.injury_type}`,
+          message: `Nova lesao: ${a.injury_type}`,
         })),
       ]
     : []
 
-  const getAlertSeverityColor = (severity: string) => {
+  const getAlertVariant = (severity: string) => {
     switch (severity) {
       case 'high':
-        return 'border-red-900/50 bg-red-950/20'
+        return 'danger'
       case 'medium':
-        return 'border-yellow-900/50 bg-yellow-950/20'
+        return 'warning'
       default:
-        return 'border-zinc-800 bg-zinc-900/50'
+        return 'default'
     }
   }
 
-  const getAlertIconColor = (severity: string) => {
-    switch (severity) {
-      case 'high':
-        return 'text-red-400'
-      case 'medium':
-        return 'text-yellow-400'
-      default:
-        return 'text-zinc-400'
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { variant: 'success' | 'info' | 'warning' | 'danger' | 'default'; label: string }> = {
+      scheduled: { variant: 'info', label: 'Agendado' },
+      confirmed: { variant: 'success', label: 'Confirmado' },
+      in_progress: { variant: 'warning', label: 'Em Andamento' },
+      completed: { variant: 'success', label: 'Concluido' },
+      cancelled: { variant: 'danger', label: 'Cancelado' },
+      no_show: { variant: 'danger', label: 'Nao Compareceu' },
+      rescheduled: { variant: 'warning', label: 'Reagendado' },
     }
+    return statusConfig[status] || { variant: 'default' as const, label: status }
+  }
+
+  const getTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      consultation: 'Consulta',
+      treatment: 'Tratamento',
+      follow_up: 'Acompanhamento',
+      assessment: 'Avaliacao',
+      review: 'Revisao',
+    }
+    return labels[type] || type
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-medium text-zinc-400">Total de Atletas</div>
-            <Users className="h-4 w-4 text-zinc-500" />
-          </div>
-          <div className="text-2xl font-semibold">
-            {overviewLoading ? '...' : overview?.total_athletes ?? 0}
-          </div>
-        </div>
+    <div className="space-y-6 animate-fade-in">
+      {/* Welcome Alert */}
+      {!overviewLoading && overview && (
+        <Alert variant="info">
+          <AlertTitle>Bem-vindo ao Dashboard</AlertTitle>
+          <AlertDescription>
+            Acompanhe as metricas e indicadores dos seus atletas em tempo real.
+          </AlertDescription>
+        </Alert>
+      )}
 
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-medium text-zinc-400">Atletas Ativos</div>
-            <Activity className="h-4 w-4 text-zinc-500" />
-          </div>
-          <div className="text-2xl font-semibold">
-            {overviewLoading ? '...' : overview?.active_athletes ?? 0}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-medium text-zinc-400">Alto Risco</div>
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-          </div>
-          <div className="text-2xl font-semibold">
-            {overviewLoading ? '...' : overview?.high_risk_athletes ?? 0}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-medium text-zinc-400">Fadiga Crítica</div>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </div>
-          <div className="text-2xl font-semibold">
-            {overviewLoading ? '...' : overview?.critical_fatigue_athletes ?? 0}
-          </div>
-        </div>
+      {/* Stats Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {overviewLoading ? (
+          <>
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+          </>
+        ) : (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <StatsCard
+                    title="Total de Atletas"
+                    value={overview?.total_athletes ?? 0}
+                    icon={<Users className="h-5 w-5" />}
+                    variant="primary"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Numero total de atletas cadastrados no sistema</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <StatsCard
+                    title="Atletas Ativos"
+                    value={overview?.active_athletes ?? 0}
+                    icon={<Activity className="h-5 w-5" />}
+                    variant="success"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Atletas ativos e disponiveis para treino</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <StatsCard
+                    title="Alto Risco"
+                    value={overview?.high_risk_athletes ?? 0}
+                    icon={<AlertTriangle className="h-5 w-5" />}
+                    variant="warning"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Atletas com risco elevado de lesao</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <StatsCard
+                    title="Fadiga Critica"
+                    value={overview?.critical_fatigue_athletes ?? 0}
+                    icon={<Heart className="h-5 w-5" />}
+                    variant="danger"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Atletas com nivel de fadiga critico</p>
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
       </div>
 
+      {/* VO2 Max Card */}
       {overview && overview.avg_vo2_max > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-xs font-medium text-zinc-400">VO₂ Máximo Médio</div>
-              <TrendingUp className="h-4 w-4 text-zinc-500" />
+        <Card>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+              <TrendingUp className="h-6 w-6 text-primary-600" />
             </div>
-            <div className="text-2xl font-semibold">{overview.avg_vo2_max} ml/kg/min</div>
-          </div>
-        </div>
-      )}
-
-      {alertsLoading && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <div className="text-sm text-zinc-400">Carregando alertas...</div>
-        </div>
-      )}
-
-      {!alertsLoading && allAlerts.length > 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <h2 className="text-lg font-semibold mb-4">Alertas Críticos</h2>
-          <div className="space-y-2">
-            {allAlerts.map((alert, index) => (
-              <div
-                key={`${alert.athlete_id}-${alert.alert_type}-${index}`}
-                className={`flex items-start gap-3 p-3 rounded border ${getAlertSeverityColor(alert.severity)}`}
-              >
-                <AlertTriangle
-                  className={`h-5 w-5 shrink-0 mt-0.5 ${getAlertIconColor(alert.severity)}`}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm">{alert.name}</div>
-                  {alert.position && (
-                    <div className="text-xs text-zinc-500 mt-0.5">{alert.position}</div>
-                  )}
-                  <div className="text-xs text-zinc-400 mt-1">{alert.message}</div>
-                  {alert.time_ago && (
-                    <div className="text-xs text-zinc-500 mt-1">{alert.time_ago}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {trendsLoading && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <div className="text-sm text-zinc-400">Carregando tendências...</div>
-        </div>
-      )}
-
-      {!trendsLoading && trends && trends.daily_metrics.length > 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <h2 className="text-lg font-semibold mb-4">Tendências (Últimos 7 dias)</h2>
-          <div className="space-y-4">
             <div>
-              <div className="text-xs font-medium text-zinc-400 mb-2">Métricas Diárias</div>
-              <div className="space-y-2">
-                {trends.daily_metrics.slice(-5).map((metric, index) => (
+              <p className="text-sm font-medium text-secondary-500">VO2 Maximo Medio</p>
+              <p className="text-2xl font-bold text-secondary-900">{overview.avg_vo2_max} <span className="text-base font-normal text-secondary-500">ml/kg/min</span></p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Main Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Alerts Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning-500" />
+              Alertas Criticos
+            </CardTitle>
+            <Badge variant="warning">{allAlerts.length}</Badge>
+          </CardHeader>
+          <CardContent>
+            {alertsLoading ? (
+              <Loading text="Carregando alertas..." />
+            ) : allAlerts.length === 0 ? (
+              <EmptyState
+                title="Nenhum alerta"
+                description="Todos os atletas estao dentro dos parametros normais"
+              />
+            ) : (
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                {allAlerts.map((alert, index) => (
                   <div
-                    key={index}
-                    className="flex items-center justify-between p-2 rounded bg-zinc-950"
+                    key={`${alert.athlete_id}-${alert.alert_type}-${index}`}
+                    className="flex items-start gap-3 rounded-lg border border-secondary-100 bg-secondary-50/50 p-3 transition-colors hover:bg-secondary-100/50"
                   >
-                    <div className="text-xs text-zinc-300">
-                      {new Date(metric.date).toLocaleDateString('pt-BR')}
+                    <div
+                      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                        alert.severity === 'high'
+                          ? 'bg-danger-100 text-danger-600'
+                          : alert.severity === 'medium'
+                            ? 'bg-warning-100 text-warning-600'
+                            : 'bg-secondary-100 text-secondary-600'
+                      }`}
+                    >
+                      <AlertTriangle className="h-4 w-4" />
                     </div>
-                    <div className="flex gap-4 text-xs text-zinc-400">
-                      <span>Fadiga: {metric.avg_fatigue}%</span>
-                      <span>VO₂: {metric.avg_vo2}</span>
-                      <span>FC: {metric.avg_heart_rate} bpm</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-secondary-900 truncate">
+                          {alert.name}
+                        </span>
+                        <Badge variant={getAlertVariant(alert.severity)} size="sm">
+                          {alert.severity === 'high' ? 'Alto' : alert.severity === 'medium' ? 'Medio' : 'Baixo'}
+                        </Badge>
+                      </div>
+                      {alert.position && (
+                        <p className="text-xs text-secondary-500 mt-0.5">{alert.position}</p>
+                      )}
+                      <p className="text-sm text-secondary-600 mt-1">{alert.message}</p>
+                      {alert.time_ago && (
+                        <p className="text-xs text-secondary-400 mt-1 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {alert.time_ago}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
+          </CardContent>
+        </Card>
 
-            {trends.injury_trends.length > 0 && (
+        {/* Appointments Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary-500" />
+              Atendimentos do Mes
+            </CardTitle>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/appointments" className='flex justify-center items-center'>
+                Ver todos
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {appointmentsLoading ? (
+              <Loading text="Carregando atendimentos..." />
+            ) : appointments.length === 0 ? (
+              <EmptyState
+                icon={<Calendar className="h-6 w-6" />}
+                title="Nenhum atendimento"
+                description="Nenhum atendimento agendado para este mes"
+                action={
+                  <Button size="sm" asChild>
+                    <Link to="/appointments">Agendar atendimento</Link>
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                {appointments
+                  .filter((apt) => {
+                    const aptDate = new Date(apt.appointmentDate)
+                    return aptDate >= now
+                  })
+                  .slice(0, 8)
+                  .map((appointment) => {
+                    const aptDate = new Date(appointment.appointmentDate)
+                    const dateStr = aptDate.toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                    })
+                    const timeStr = aptDate.toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                    const statusConfig = getStatusBadge(appointment.status)
+
+                    return (
+                      <div
+                        key={appointment.id}
+                        className="flex items-center gap-3 rounded-lg border border-secondary-100 bg-white p-3 transition-all hover:shadow-sm hover:border-secondary-200"
+                      >
+                        <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+                          <span className="text-xs font-medium">{dateStr.split('/')[1]}</span>
+                          <span className="text-lg font-bold leading-tight">{dateStr.split('/')[0]}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-secondary-900 truncate">
+                              {appointment.athlete?.name || `Atleta #${appointment.athleteId}`}
+                            </span>
+                            <Badge variant={statusConfig.variant} size="sm">
+                              {statusConfig.label}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-secondary-500 mt-0.5">
+                            {timeStr} - {getTypeLabel(appointment.type)} ({appointment.durationMinutes} min)
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Trends Section */}
+      {!trendsLoading && trends && trends.daily_metrics.length > 0 && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary-500" />
+              Tendencias (Ultimos 7 dias)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Daily Metrics */}
               <div>
-                <div className="text-xs font-medium text-zinc-400 mb-2">Lesões Recentes</div>
+                <h4 className="text-sm font-medium text-secondary-700 mb-3">Metricas Diarias</h4>
                 <div className="space-y-2">
-                  {trends.injury_trends.slice(-5).map((trend, index) => (
+                  {trends.daily_metrics.slice(-5).map((metric, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-2 rounded bg-zinc-950"
+                      className="flex items-center justify-between rounded-lg border border-secondary-100 bg-secondary-50/50 p-3"
                     >
-                      <div className="text-xs text-zinc-300">
-                        {new Date(trend.date).toLocaleDateString('pt-BR')}
-                      </div>
-                      <div className="text-xs text-red-400">
-                        {trend.new_injuries} nova{trend.new_injuries !== 1 ? 's' : ''} lesão
-                        {trend.new_injuries !== 1 ? 'ões' : ''}
+                      <span className="text-sm font-medium text-secondary-700">
+                        {new Date(metric.date).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'short',
+                        })}
+                      </span>
+                      <div className="flex gap-4 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className="text-secondary-500">Fadiga:</span>
+                          <span className={`font-medium ${metric.avg_fatigue > 70 ? 'text-danger-600' : metric.avg_fatigue > 50 ? 'text-warning-600' : 'text-success-600'}`}>
+                            {metric.avg_fatigue}%
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-secondary-500">VO2:</span>
+                          <span className="font-medium text-secondary-700">{metric.avg_vo2}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-secondary-500">FC:</span>
+                          <span className="font-medium text-secondary-700">{metric.avg_heart_rate}</span>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {!alertsLoading && allAlerts.length === 0 && !trendsLoading && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
-          <p className="text-sm text-zinc-400">Nenhum alerta ou tendência no momento</p>
-        </div>
-      )}
-
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Atendimentos do Mês
-          </h2>
-          <a
-            href="/appointments"
-            className="text-sm text-sky-400 hover:text-sky-300 underline"
-          >
-            Ver todos
-          </a>
-        </div>
-
-        {appointmentsLoading && (
-          <div className="text-sm text-zinc-400">Carregando atendimentos...</div>
-        )}
-
-        {!appointmentsLoading && appointments.length === 0 && (
-          <div className="text-sm text-zinc-400 text-center py-4">
-            Nenhum atendimento agendado para este mês
-          </div>
-        )}
-
-        {!appointmentsLoading && appointments.length > 0 && (
-          <div className="space-y-3">
-            {appointments
-              .filter((apt) => {
-                const aptDate = new Date(apt.appointmentDate)
-                return aptDate >= now
-              })
-              .slice(0, 10)
-              .map((appointment) => {
-                const aptDate = new Date(appointment.appointmentDate)
-                const dateStr = aptDate.toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                })
-                const timeStr = aptDate.toLocaleTimeString('pt-BR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-
-                const getStatusColor = (status: string) => {
-                  const colors: Record<string, string> = {
-                    scheduled: 'bg-blue-900/30 text-blue-400',
-                    confirmed: 'bg-green-900/30 text-green-400',
-                    in_progress: 'bg-yellow-900/30 text-yellow-400',
-                    completed: 'bg-green-900/30 text-green-400',
-                    cancelled: 'bg-red-900/30 text-red-400',
-                    no_show: 'bg-orange-900/30 text-orange-400',
-                    rescheduled: 'bg-purple-900/30 text-purple-400',
-                  }
-                  return colors[status] || 'bg-zinc-800 text-zinc-400'
-                }
-
-                const getStatusLabel = (status: string) => {
-                  const labels: Record<string, string> = {
-                    scheduled: 'Agendado',
-                    confirmed: 'Confirmado',
-                    in_progress: 'Em Andamento',
-                    completed: 'Concluído',
-                    cancelled: 'Cancelado',
-                    no_show: 'Não Compareceu',
-                    rescheduled: 'Reagendado',
-                  }
-                  return labels[status] || status
-                }
-
-                const getTypeLabel = (type: string) => {
-                  const labels: Record<string, string> = {
-                    consultation: 'Consulta',
-                    treatment: 'Tratamento',
-                    follow_up: 'Acompanhamento',
-                    assessment: 'Avaliação',
-                    review: 'Revisão',
-                  }
-                  return labels[type] || type
-                }
-
-                return (
-                  <div
-                    key={appointment.id}
-                    className="flex items-center justify-between p-3 rounded border border-zinc-800 bg-zinc-950 hover:bg-zinc-900/50"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <div className="text-sm font-medium">
-                          {dateStr} às {timeStr}
-                        </div>
-                        <span
-                          className={`text-xs px-2 py-1 rounded ${getStatusColor(appointment.status)}`}
-                        >
-                          {getStatusLabel(appointment.status)}
+              {/* Injury Trends */}
+              {trends.injury_trends.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-secondary-700 mb-3">Lesoes Recentes</h4>
+                  <div className="space-y-2">
+                    {trends.injury_trends.slice(-5).map((trend, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg border border-secondary-100 bg-secondary-50/50 p-3"
+                      >
+                        <span className="text-sm font-medium text-secondary-700">
+                          {new Date(trend.date).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: 'short',
+                          })}
                         </span>
+                        <Badge variant={trend.new_injuries > 0 ? 'danger' : 'success'} size="sm">
+                          {trend.new_injuries} nova{trend.new_injuries !== 1 ? 's' : ''} lesao{trend.new_injuries !== 1 ? 'es' : ''}
+                        </Badge>
                       </div>
-                      <div className="text-xs text-zinc-400 mt-1">
-                        {appointment.athlete?.name || `Atleta #${appointment.athleteId}`} -{' '}
-                        {getTypeLabel(appointment.type)} ({appointment.durationMinutes} min)
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                )
-              })}
-          </div>
-        )}
-      </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {trendsLoading && (
+        <Card>
+          <CardContent className="py-8">
+            <Loading text="Carregando tendencias..." />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
-

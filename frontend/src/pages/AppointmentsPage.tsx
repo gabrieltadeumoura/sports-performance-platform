@@ -10,10 +10,26 @@ import {
   useRescheduleAppointment,
 } from '../features/appointments/hooks'
 import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
+import { Card, CardContent } from '../components/ui/card'
+import { EmptyState } from '../components/ui/empty-state'
+import { Loading } from '../components/ui/loading'
+import { Input } from '../components/ui/input'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
+import { toast } from '../components/ui/use-toast'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog'
@@ -68,6 +84,18 @@ export function AppointmentsPage() {
     createMutation.mutate(payload, {
       onSuccess: () => {
         setIsCreateOpen(false)
+        toast({
+          variant: 'success',
+          title: 'Atendimento criado com sucesso!',
+          description: 'O atendimento foi agendado.',
+        })
+      },
+      onError: () => {
+        toast({
+          variant: 'danger',
+          title: 'Erro ao criar atendimento',
+          description: 'Ocorreu um erro ao criar o atendimento. Tente novamente.',
+        })
       },
     })
   }
@@ -103,6 +131,18 @@ export function AppointmentsPage() {
         {
           onSuccess: () => {
             setEditingAppointment(null)
+            toast({
+              variant: 'success',
+              title: 'Atendimento atualizado com sucesso!',
+              description: 'As informações foram atualizadas.',
+            })
+          },
+          onError: () => {
+            toast({
+              variant: 'danger',
+              title: 'Erro ao atualizar atendimento',
+              description: 'Ocorreu um erro ao atualizar. Tente novamente.',
+            })
           },
         },
       )
@@ -114,6 +154,18 @@ export function AppointmentsPage() {
       deleteMutation.mutate(deletingId, {
         onSuccess: () => {
           setDeletingId(null)
+          toast({
+            variant: 'success',
+            title: 'Atendimento excluído com sucesso!',
+            description: 'O registro foi removido do sistema.',
+          })
+        },
+        onError: () => {
+          toast({
+            variant: 'danger',
+            title: 'Erro ao excluir atendimento',
+            description: 'Ocorreu um erro ao excluir. Tente novamente.',
+          })
         },
       })
     }
@@ -142,30 +194,17 @@ export function AppointmentsPage() {
     }
   }
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      scheduled: 'Agendado',
-      confirmed: 'Confirmado',
-      in_progress: 'Em Andamento',
-      completed: 'Concluído',
-      cancelled: 'Cancelado',
-      no_show: 'Não Compareceu',
-      rescheduled: 'Reagendado',
+  const getStatusBadge = (status: string) => {
+    const config: Record<string, { variant: 'info' | 'success' | 'warning' | 'danger' | 'default'; label: string }> = {
+      scheduled: { variant: 'info', label: 'Agendado' },
+      confirmed: { variant: 'success', label: 'Confirmado' },
+      in_progress: { variant: 'warning', label: 'Em Andamento' },
+      completed: { variant: 'success', label: 'Concluído' },
+      cancelled: { variant: 'danger', label: 'Cancelado' },
+      no_show: { variant: 'danger', label: 'Não Compareceu' },
+      rescheduled: { variant: 'warning', label: 'Reagendado' },
     }
-    return labels[status] || status
-  }
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      scheduled: 'bg-blue-900/30 text-blue-400',
-      confirmed: 'bg-green-900/30 text-green-400',
-      in_progress: 'bg-yellow-900/30 text-yellow-400',
-      completed: 'bg-green-900/30 text-green-400',
-      cancelled: 'bg-red-900/30 text-red-400',
-      no_show: 'bg-orange-900/30 text-orange-400',
-      rescheduled: 'bg-purple-900/30 text-purple-400',
-    }
-    return colors[status] || 'bg-zinc-800 text-zinc-400'
+    return config[status] || { variant: 'default' as const, label: status }
   }
 
   const getTypeLabel = (type: string) => {
@@ -180,125 +219,160 @@ export function AppointmentsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Atendimentos</h2>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-secondary-900">Atendimentos</h2>
+          <p className="text-sm text-secondary-500 mt-1">
+            Gerencie os atendimentos e consultas dos atletas
+          </p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
           Novo Atendimento
         </Button>
       </div>
 
-      {isLoading && <p className="text-sm text-zinc-400">Carregando atendimentos...</p>}
-
-      {!isLoading && appointments.length === 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
-          <p className="text-sm text-zinc-400">Nenhum atendimento cadastrado</p>
-        </div>
-      )}
-
-      {!isLoading && appointments.length > 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden">
-          <table className="w-full">
-            <thead className="border-b border-zinc-800">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Atleta</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">
-                  Data/Hora
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Tipo</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Duração</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((appointment) => (
-                <tr
-                  key={appointment.id}
-                  className="border-b border-zinc-800 hover:bg-zinc-900/50"
-                >
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {appointment.athlete?.name || `Atleta #${appointment.athleteId}`}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {new Date(appointment.appointmentDate).toLocaleString('pt-BR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </td>
-                  <td className="px-4 py-3 text-sm">{getTypeLabel(appointment.type)}</td>
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {appointment.durationMinutes} min
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${getStatusColor(appointment.status)}`}
-                    >
-                      {getStatusLabel(appointment.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      {appointment.status === 'scheduled' && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleConfirm(appointment.id)}
-                            className="h-8 w-8 p-0 text-green-400 hover:text-green-300"
-                            title="Confirmar"
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCancel(appointment.id)}
-                            className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
-                            title="Cancelar"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setReschedulingId(appointment.id)}
-                            className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300"
-                            title="Reagendar"
-                          >
-                            <Calendar className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingAppointment(appointment)}
-                        className="h-8 w-8 p-0"
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeletingId(appointment.id)}
-                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Content */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-12">
+            <Loading size="lg" text="Carregando atendimentos..." />
+          </CardContent>
+        </Card>
+      ) : appointments.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <EmptyState
+              icon={<Calendar className="h-8 w-8" />}
+              title="Nenhum atendimento cadastrado"
+              description="Comece agendando o primeiro atendimento"
+              action={
+                <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+                  Agendar Atendimento
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Atleta</TableHead>
+                <TableHead>Data/Hora</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Duração</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {appointments.map((appointment) => {
+                const statusConfig = getStatusBadge(appointment.status)
+                return (
+                  <TableRow key={appointment.id}>
+                    <TableCell className="font-medium text-secondary-900">
+                      {appointment.athlete?.name || `Atleta #${appointment.athleteId}`}
+                    </TableCell>
+                    <TableCell className="text-secondary-500">
+                      {new Date(appointment.appointmentDate).toLocaleString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </TableCell>
+                    <TableCell className="text-secondary-500">{getTypeLabel(appointment.type)}</TableCell>
+                    <TableCell className="text-secondary-500">
+                      {appointment.durationMinutes} min
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        {appointment.status === 'scheduled' && (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => handleConfirm(appointment.id)}
+                                  className="text-success-600 hover:text-success-700 hover:bg-success-50"
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Confirmar atendimento</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => handleCancel(appointment.id)}
+                                  className="text-danger-600 hover:text-danger-700 hover:bg-danger-50"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Cancelar atendimento</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => setReschedulingId(appointment.id)}
+                                  className="text-info-600 hover:text-info-700 hover:bg-info-50"
+                                >
+                                  <Calendar className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Reagendar atendimento</TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setEditingAppointment(appointment)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar atendimento</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setDeletingId(appointment.id)}
+                              className="text-danger-600 hover:text-danger-700 hover:bg-danger-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir atendimento</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+          <p className="text-sm text-secondary-500 text-center">
+            Mostrando {appointments.length} {appointments.length === 1 ? 'atendimento' : 'atendimentos'}
+          </p>
+        </>
       )}
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -335,6 +409,7 @@ export function AppointmentsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Dialog */}
       <Dialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
         <DialogContent>
           <DialogHeader>
@@ -343,22 +418,22 @@ export function AppointmentsPage() {
               Tem certeza que deseja excluir este atendimento? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2 justify-end">
+          <DialogFooter>
             <Button variant="outline" onClick={() => setDeletingId(null)}>
               Cancelar
             </Button>
             <Button
-              variant="default"
+              variant="danger"
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className="bg-red-600 hover:bg-red-500"
+              isLoading={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+              Excluir
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Reschedule Dialog */}
       <Dialog
         open={!!reschedulingId}
         onOpenChange={(open) => !open && setReschedulingId(null)}
@@ -369,29 +444,25 @@ export function AppointmentsPage() {
             <DialogDescription>Selecione a nova data e hora para o atendimento</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1 text-zinc-50">
-                Nova Data e Hora
-              </label>
-              <input
-                type="datetime-local"
-                value={newRescheduleDate}
-                onChange={(e) => setNewRescheduleDate(e.target.value)}
-                className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setReschedulingId(null)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleReschedule}
-                disabled={!newRescheduleDate || rescheduleMutation.isPending}
-              >
-                {rescheduleMutation.isPending ? 'Reagendando...' : 'Reagendar'}
-              </Button>
-            </div>
+            <Input
+              type="datetime-local"
+              label="Nova Data e Hora"
+              value={newRescheduleDate}
+              onChange={(e) => setNewRescheduleDate(e.target.value)}
+            />
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReschedulingId(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleReschedule}
+              isLoading={rescheduleMutation.isPending}
+              disabled={!newRescheduleDate}
+            >
+              Reagendar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

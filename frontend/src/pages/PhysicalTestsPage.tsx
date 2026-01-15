@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import {
   usePhysicalAssessments,
-  useCreatePhysicalAssessment,
   useDeletePhysicalAssessment,
 } from '../features/physical-tests/hooks'
 import { Button } from '../components/ui/button'
@@ -13,25 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog'
-import type { CreatePhysicalAssessmentPayload } from '../features/physical-tests/api'
+// import type { CreatePhysicalAssessmentPayload } from '../features/physical-tests/api'
 
 export function PhysicalTestsPage() {
   const { data, isLoading } = usePhysicalAssessments()
-  const createMutation = useCreatePhysicalAssessment()
   const deleteMutation = useDeletePhysicalAssessment()
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const assessments = data?.data ?? []
-
-  const handleCreate = (values: CreatePhysicalAssessmentPayload) => {
-    createMutation.mutate(values, {
-      onSuccess: () => {
-        setIsCreateOpen(false)
-      },
-    })
-  }
 
   const handleDelete = () => {
     if (deletingId) {

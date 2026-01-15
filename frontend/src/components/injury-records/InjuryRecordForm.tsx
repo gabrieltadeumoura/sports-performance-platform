@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Select } from '../ui/select'
 import {
   createInjuryRecordSchema,
   type CreateInjuryRecordFormValues,
@@ -78,192 +80,143 @@ export function InjuryRecordForm({
   })
 
 
+  const severityOptions = [
+    { value: 'minor', label: 'Leve' },
+    { value: 'moderate', label: 'Moderada' },
+    { value: 'severe', label: 'Grave' },
+    { value: 'critical', label: 'Crítica' },
+  ]
+
+  const statusOptions = [
+    { value: 'active', label: 'Ativa' },
+    { value: 'recovering', label: 'Recuperando' },
+    { value: 'recovered', label: 'Recuperada' },
+  ]
+
+  const athleteOptions = [
+    { value: '0', label: 'Selecione um atleta' },
+    ...athletes.map((athlete) => ({
+      value: String(athlete.id),
+      label: athlete.name,
+    })),
+  ]
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Atleta</label>
-        <select
-          {...register('athleteId', { valueAsNumber: true })}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          disabled={!!injuryRecord}
-        >
-          <option value={0}>Selecione um atleta</option>
-          {athletes.map((athlete) => (
-            <option key={athlete.id} value={athlete.id}>
-              {athlete.name}
-            </option>
-          ))}
-        </select>
-        {errors.athleteId && (
-          <p className="text-xs text-red-400 mt-1">{errors.athleteId.message}</p>
-        )}
-      </div>
-
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Tipo de Lesão</label>
-          <input
-            {...register('injuryType')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            placeholder="Ex: Entorse, Fratura, etc."
-          />
-          {errors.injuryType && (
-            <p className="text-xs text-red-400 mt-1">{errors.injuryType.message}</p>
-          )}
-        </div>
-
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Parte do Corpo</label>
-          <input
-            {...register('bodyPart')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            placeholder="Ex: Joelho, Tornozelo, etc."
-          />
-          {errors.bodyPart && (
-            <p className="text-xs text-red-400 mt-1">{errors.bodyPart.message}</p>
-          )}
-        </div>
-      </div>
-
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Severidade</label>
-          <select
-            {...register('severity')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          >
-            <option value="minor">Leve</option>
-            <option value="moderate">Moderada</option>
-            <option value="severe">Grave</option>
-            <option value="critical">Crítica</option>
-          </select>
-          {errors.severity && (
-            <p className="text-xs text-red-400 mt-1">{errors.severity.message}</p>
-          )}
-        </div>
-
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Status</label>
-          <select
-            {...register('status')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          >
-            <option value="active">Ativa</option>
-            <option value="recovering">Recuperando</option>
-            <option value="recovered">Recuperada</option>
-          </select>
-          {errors.status && (
-            <p className="text-xs text-red-400 mt-1">{errors.status.message}</p>
-          )}
-        </div>
-      </div>
-
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Data da Lesão</label>
-          <input
-            type="date"
-            {...register('injuryDate')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          />
-          {errors.injuryDate && (
-            <p className="text-xs text-red-400 mt-1">{errors.injuryDate.message}</p>
-          )}
-        </div>
-
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">
-            Data de Recuperação
-          </label>
-          <input
-            type="date"
-            {...register('recoveryDate')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          />
-          {errors.recoveryDate && (
-            <p className="text-xs text-red-400 mt-1">{errors.recoveryDate.message}</p>
-          )}
-        </div>
-      </div>
-
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">
-            Recuperação Esperada (dias)
-          </label>
-          <input
-            type="number"
-            {...register('expectedRecovery', { valueAsNumber: true })}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            placeholder="Ex: 30"
-          />
-          {errors.expectedRecovery && (
-            <p className="text-xs text-red-400 mt-1">{errors.expectedRecovery.message}</p>
-          )}
-        </div>
-
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">
-            Recuperação Real (dias)
-          </label>
-          <input
-            type="number"
-            {...register('actualRecovery', {
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Select
+            label="Atleta"
+            options={athleteOptions}
+            error={errors.athleteId?.message}
+            disabled={!!injuryRecord}
+            {...register('athleteId', {
               valueAsNumber: true,
-              setValueAs: (v) => (v === '' ? undefined : v),
+              setValueAs: (v) => (v === '0' ? 0 : Number(v)),
             })}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            placeholder="Opcional"
           />
-          {errors.actualRecovery && (
-            <p className="text-xs text-red-400 mt-1">{errors.actualRecovery.message}</p>
+        </div>
+
+        <Input
+          label="Tipo de Lesão"
+          placeholder="Ex: Entorse, Fratura, etc."
+          error={errors.injuryType?.message}
+          {...register('injuryType')}
+        />
+
+        <Input
+          label="Parte do Corpo"
+          placeholder="Ex: Joelho, Tornozelo, etc."
+          error={errors.bodyPart?.message}
+          {...register('bodyPart')}
+        />
+
+        <Select
+          label="Severidade"
+          options={severityOptions}
+          error={errors.severity?.message}
+          {...register('severity')}
+        />
+
+        <Select
+          label="Status"
+          options={statusOptions}
+          error={errors.status?.message}
+          {...register('status')}
+        />
+
+        <Input
+          label="Data da Lesão"
+          type="date"
+          error={errors.injuryDate?.message}
+          {...register('injuryDate')}
+        />
+
+        <Input
+          label="Data de Recuperação"
+          type="date"
+          error={errors.recoveryDate?.message}
+          {...register('recoveryDate')}
+        />
+
+        <Input
+          label="Recuperação Esperada (dias)"
+          type="number"
+          placeholder="Ex: 30"
+          error={errors.expectedRecovery?.message}
+          {...register('expectedRecovery', { valueAsNumber: true })}
+        />
+
+        <Input
+          label="Recuperação Real (dias)"
+          type="number"
+          placeholder="Opcional"
+          error={errors.actualRecovery?.message}
+          {...register('actualRecovery', {
+            valueAsNumber: true,
+            setValueAs: (v) => (v === '' ? undefined : v),
+          })}
+        />
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Causa
+          </label>
+          <textarea
+            {...register('cause')}
+            rows={2}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Descreva a causa da lesão"
+          />
+          {errors.cause && (
+            <p className="mt-1.5 text-xs text-danger-600">{errors.cause.message}</p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Protocolo de Tratamento
+          </label>
+          <textarea
+            {...register('treatmentProtocol')}
+            rows={4}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Descreva o protocolo de tratamento"
+          />
+          {errors.treatmentProtocol && (
+            <p className="mt-1.5 text-xs text-danger-600">
+              {errors.treatmentProtocol.message}
+            </p>
           )}
         </div>
       </div>
 
-
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Causa</label>
-        <textarea
-          {...register('cause')}
-          rows={2}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Descreva a causa da lesão"
-        />
-        {errors.cause && <p className="text-xs text-red-400 mt-1">{errors.cause.message}</p>}
-      </div>
-
-
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">
-          Protocolo de Tratamento
-        </label>
-        <textarea
-          {...register('treatmentProtocol')}
-          rows={4}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Descreva o protocolo de tratamento"
-        />
-        {errors.treatmentProtocol && (
-          <p className="text-xs text-red-400 mt-1">{errors.treatmentProtocol.message}</p>
-        )}
-      </div>
-
-
-      <div className="flex gap-2 justify-end">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-secondary-100">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {injuryRecord ? 'Salvar' : 'Criar'}
+        <Button type="submit" isLoading={isLoading}>
+          {injuryRecord ? 'Salvar Alterações' : 'Criar Lesão'}
         </Button>
       </div>
     </form>

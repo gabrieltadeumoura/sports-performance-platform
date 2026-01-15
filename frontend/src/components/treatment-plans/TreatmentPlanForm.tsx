@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Select } from '../ui/select'
 import {
   createTreatmentPlanSchema,
   type CreateTreatmentPlanFormValues,
@@ -67,140 +69,134 @@ export function TreatmentPlanForm({
     (record) => record.athleteId === selectedAthleteId,
   )
 
+  const athleteOptions = [
+    { value: '0', label: 'Selecione um atleta' },
+    ...athletes.map((athlete) => ({
+      value: String(athlete.id),
+      label: athlete.name,
+    })),
+  ]
+
+  const injuryRecordOptions = [
+    { value: '', label: 'Nenhuma' },
+    ...filteredInjuryRecords.map((record) => ({
+      value: String(record.id),
+      label: `${record.injuryType} - ${record.bodyPart} (${new Date(record.injuryDate).toLocaleDateString('pt-BR')})`,
+    })),
+  ]
+
+  const statusOptions = [
+    { value: 'draft', label: 'Rascunho' },
+    { value: 'active', label: 'Ativo' },
+  ]
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Atleta</label>
-        <select
-          {...register('athleteId', { valueAsNumber: true })}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          disabled={!!treatmentPlan}
-        >
-          <option value={0}>Selecione um atleta</option>
-          {athletes.map((athlete) => (
-            <option key={athlete.id} value={athlete.id}>
-              {athlete.name}
-            </option>
-          ))}
-        </select>
-        {errors.athleteId && (
-          <p className="text-xs text-red-400 mt-1">{errors.athleteId.message}</p>
-        )}
-      </div>
-
-      {selectedAthleteId > 0 && filteredInjuryRecords.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">
-            Lesão Relacionada (Opcional)
-          </label>
-          <select
-            {...register('injuryRecordId', {
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Select
+            label="Atleta"
+            options={athleteOptions}
+            error={errors.athleteId?.message}
+            disabled={!!treatmentPlan}
+            {...register('athleteId', {
               valueAsNumber: true,
-              setValueAs: (v) => (v === '' || v === '0' ? null : Number(v)),
+              setValueAs: (v) => (v === '0' ? 0 : Number(v)),
             })}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          >
-            <option value="">Nenhuma</option>
-            {filteredInjuryRecords.map((record) => (
-              <option key={record.id} value={record.id}>
-                {record.injuryType} - {record.bodyPart} (
-                {new Date(record.injuryDate).toLocaleDateString('pt-BR')})
-              </option>
-            ))}
-          </select>
-          {errors.injuryRecordId && (
-            <p className="text-xs text-red-400 mt-1">{errors.injuryRecordId.message}</p>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Data de Início</label>
-          <input
-            type="date"
-            {...register('startDate')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
           />
-          {errors.startDate && (
-            <p className="text-xs text-red-400 mt-1">{errors.startDate.message}</p>
-          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Data de Término</label>
-          <input
-            type="date"
-            {...register('endDate')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+        {selectedAthleteId > 0 && filteredInjuryRecords.length > 0 && (
+          <div className="sm:col-span-2">
+            <Select
+              label="Lesão Relacionada (Opcional)"
+              options={injuryRecordOptions}
+              error={errors.injuryRecordId?.message}
+              {...register('injuryRecordId', {
+                valueAsNumber: true,
+                setValueAs: (v) => (v === '' || v === '0' ? null : Number(v)),
+              })}
+            />
+          </div>
+        )}
+
+        <Input
+          label="Data de Início"
+          type="date"
+          error={errors.startDate?.message}
+          {...register('startDate')}
+        />
+
+        <Input
+          label="Data de Término"
+          type="date"
+          error={errors.endDate?.message}
+          {...register('endDate')}
+        />
+
+        {!treatmentPlan && (
+          <div className="sm:col-span-2">
+            <Select
+              label="Status Inicial"
+              options={statusOptions}
+              error={errors.status?.message}
+              {...register('status')}
+            />
+          </div>
+        )}
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Diagnóstico
+          </label>
+          <textarea
+            {...register('diagnosis')}
+            rows={3}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Descreva o diagnóstico"
           />
-          {errors.endDate && (
-            <p className="text-xs text-red-400 mt-1">{errors.endDate.message}</p>
+          {errors.diagnosis && (
+            <p className="mt-1.5 text-xs text-danger-600">{errors.diagnosis.message}</p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Objetivos
+          </label>
+          <textarea
+            {...register('objectives')}
+            rows={4}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Descreva os objetivos do tratamento"
+          />
+          {errors.objectives && (
+            <p className="mt-1.5 text-xs text-danger-600">{errors.objectives.message}</p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Observações
+          </label>
+          <textarea
+            {...register('notes')}
+            rows={3}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Observações adicionais (opcional)"
+          />
+          {errors.notes && (
+            <p className="mt-1.5 text-xs text-danger-600">{errors.notes.message}</p>
           )}
         </div>
       </div>
 
-      {!treatmentPlan && (
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Status Inicial</label>
-          <select
-            {...register('status')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          >
-            <option value="draft">Rascunho</option>
-            <option value="active">Ativo</option>
-          </select>
-          {errors.status && (
-            <p className="text-xs text-red-400 mt-1">{errors.status.message}</p>
-          )}
-        </div>
-      )}
-
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Diagnóstico</label>
-        <textarea
-          {...register('diagnosis')}
-          rows={3}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Descreva o diagnóstico"
-        />
-        {errors.diagnosis && (
-          <p className="text-xs text-red-400 mt-1">{errors.diagnosis.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Objetivos</label>
-        <textarea
-          {...register('objectives')}
-          rows={4}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Descreva os objetivos do tratamento"
-        />
-        {errors.objectives && (
-          <p className="text-xs text-red-400 mt-1">{errors.objectives.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Observações</label>
-        <textarea
-          {...register('notes')}
-          rows={3}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Observações adicionais (opcional)"
-        />
-        {errors.notes && (
-          <p className="text-xs text-red-400 mt-1">{errors.notes.message}</p>
-        )}
-      </div>
-
-      <div className="flex gap-2 justify-end">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-secondary-100">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {treatmentPlan ? 'Salvar' : 'Criar'}
+        <Button type="submit" isLoading={isLoading}>
+          {treatmentPlan ? 'Salvar Alterações' : 'Criar Plano de Tratamento'}
         </Button>
       </div>
     </form>

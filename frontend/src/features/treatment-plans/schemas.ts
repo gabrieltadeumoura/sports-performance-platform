@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const treatmentPlanStatusEnum = z.enum(
   ['draft', 'active', 'paused', 'completed', 'cancelled'],
   {
-    errorMap: () => ({ message: 'Status é obrigatório' }),
+    message: 'Status e obrigatorio',
   },
 )
 

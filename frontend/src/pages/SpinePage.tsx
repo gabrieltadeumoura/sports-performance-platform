@@ -1,19 +1,25 @@
 import { SpineViewer } from '../components/spine/SpineViewer'
+import { Card, CardContent } from '../components/ui/card'
 
 export function SpinePage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold mb-2">Coluna Vertebral</h1>
-        <p className="text-sm text-zinc-400">
-          Visualização do modelo 3D da coluna vertebral
+        <h2 className="text-2xl font-bold text-secondary-900">Coluna Vertebral</h2>
+        <p className="text-sm text-secondary-500 mt-1">
+          Visualização interativa do modelo 3D da coluna vertebral
         </p>
       </div>
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-        <div className="w-full" style={{ height: '600px' }}>
-          <SpineViewer />
-        </div>
-      </div>
+
+      {/* 3D Viewer */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="w-full" style={{ height: '600px' }}>
+            <SpineViewer />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

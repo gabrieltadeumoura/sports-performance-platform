@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Select } from '../ui/select'
 import {
   createAppointmentSchema,
   type CreateAppointmentFormValues,
@@ -67,166 +69,148 @@ export function AppointmentForm({
     (plan) => plan.athleteId === selectedAthleteId,
   )
 
+  const athleteOptions = [
+    { value: '0', label: 'Selecione um atleta' },
+    ...athletes.map((athlete) => ({
+      value: String(athlete.id),
+      label: athlete.name,
+    })),
+  ]
+
+  const treatmentPlanOptions = [
+    { value: '', label: 'Nenhum' },
+    ...filteredTreatmentPlans.map((plan) => ({
+      value: String(plan.id),
+      label: `${plan.diagnosis.length > 50 ? `${plan.diagnosis.substring(0, 50)}...` : plan.diagnosis} (${plan.status})`,
+    })),
+  ]
+
+  const typeOptions = [
+    { value: 'consultation', label: 'Consulta' },
+    { value: 'treatment', label: 'Tratamento' },
+    { value: 'follow_up', label: 'Acompanhamento' },
+    { value: 'assessment', label: 'Avaliação' },
+    { value: 'review', label: 'Revisão' },
+  ]
+
+  const statusOptions = [
+    { value: 'scheduled', label: 'Agendado' },
+    { value: 'confirmed', label: 'Confirmado' },
+  ]
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Atleta</label>
-        <select
-          {...register('athleteId', { valueAsNumber: true })}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          disabled={!!appointment}
-        >
-          <option value={0}>Selecione um atleta</option>
-          {athletes.map((athlete) => (
-            <option key={athlete.id} value={athlete.id}>
-              {athlete.name}
-            </option>
-          ))}
-        </select>
-        {errors.athleteId && (
-          <p className="text-xs text-red-400 mt-1">{errors.athleteId.message}</p>
-        )}
-      </div>
-
-      {selectedAthleteId > 0 && filteredTreatmentPlans.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">
-            Plano de Tratamento (Opcional)
-          </label>
-          <select
-            {...register('treatmentPlanId', {
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Select
+            label="Atleta"
+            options={athleteOptions}
+            error={errors.athleteId?.message}
+            disabled={!!appointment}
+            {...register('athleteId', {
               valueAsNumber: true,
-              setValueAs: (v) => (v === '' || v === '0' ? undefined : Number(v)),
+              setValueAs: (v) => (v === '0' ? 0 : Number(v)),
             })}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          >
-            <option value="">Nenhum</option>
-            {filteredTreatmentPlans.map((plan) => (
-              <option key={plan.id} value={plan.id}>
-                {plan.diagnosis.length > 50
-                  ? `${plan.diagnosis.substring(0, 50)}...`
-                  : plan.diagnosis}{' '}
-                ({plan.status})
-              </option>
-            ))}
-          </select>
-          {errors.treatmentPlanId && (
-            <p className="text-xs text-red-400 mt-1">{errors.treatmentPlanId.message}</p>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">
-            Data e Hora do Atendimento
-          </label>
-          <input
-            type="datetime-local"
-            {...register('appointmentDate')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
           />
-          {errors.appointmentDate && (
-            <p className="text-xs text-red-400 mt-1">{errors.appointmentDate.message}</p>
-          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">
-            Duração (minutos)
-          </label>
-          <input
-            type="number"
-            {...register('durationMinutes', { valueAsNumber: true })}
-            min="1"
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          />
-          {errors.durationMinutes && (
-            <p className="text-xs text-red-400 mt-1">{errors.durationMinutes.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Tipo</label>
-          <select
-            {...register('type')}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          >
-            <option value="consultation">Consulta</option>
-            <option value="treatment">Tratamento</option>
-            <option value="follow_up">Acompanhamento</option>
-            <option value="assessment">Avaliação</option>
-            <option value="review">Revisão</option>
-          </select>
-          {errors.type && (
-            <p className="text-xs text-red-400 mt-1">{errors.type.message}</p>
-          )}
-        </div>
-
-        {!appointment && (
-          <div>
-            <label className="block text-sm font-medium mb-1 text-zinc-50">Status</label>
-            <select
-              {...register('status')}
-              className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-            >
-              <option value="scheduled">Agendado</option>
-              <option value="confirmed">Confirmado</option>
-            </select>
-            {errors.status && (
-              <p className="text-xs text-red-400 mt-1">{errors.status.message}</p>
-            )}
+        {selectedAthleteId > 0 && filteredTreatmentPlans.length > 0 && (
+          <div className="sm:col-span-2">
+            <Select
+              label="Plano de Tratamento (Opcional)"
+              options={treatmentPlanOptions}
+              error={errors.treatmentPlanId?.message}
+              {...register('treatmentPlanId', {
+                valueAsNumber: true,
+                setValueAs: (v) => (v === '' || v === '0' ? undefined : Number(v)),
+              })}
+            />
           </div>
         )}
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Motivo</label>
-        <textarea
-          {...register('reason')}
-          rows={2}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Motivo do atendimento (opcional)"
+        <Input
+          label="Data e Hora do Atendimento"
+          type="datetime-local"
+          error={errors.appointmentDate?.message}
+          {...register('appointmentDate')}
         />
-        {errors.reason && (
-          <p className="text-xs text-red-400 mt-1">{errors.reason.message}</p>
-        )}
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Notas</label>
-        <textarea
-          {...register('notes')}
-          rows={3}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Notas adicionais (opcional)"
+        <Input
+          label="Duração (minutos)"
+          type="number"
+          min="1"
+          error={errors.durationMinutes?.message}
+          {...register('durationMinutes', { valueAsNumber: true })}
         />
-        {errors.notes && (
-          <p className="text-xs text-red-400 mt-1">{errors.notes.message}</p>
-        )}
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Observações</label>
-        <textarea
-          {...register('observations')}
-          rows={3}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          placeholder="Observações do atendimento (opcional)"
+        <Select
+          label="Tipo"
+          options={typeOptions}
+          error={errors.type?.message}
+          {...register('type')}
         />
-        {errors.observations && (
-          <p className="text-xs text-red-400 mt-1">{errors.observations.message}</p>
+
+        {!appointment && (
+          <Select
+            label="Status"
+            options={statusOptions}
+            error={errors.status?.message}
+            {...register('status')}
+          />
         )}
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Motivo
+          </label>
+          <textarea
+            {...register('reason')}
+            rows={2}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Motivo do atendimento (opcional)"
+          />
+          {errors.reason && (
+            <p className="mt-1.5 text-xs text-danger-600">{errors.reason.message}</p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Notas
+          </label>
+          <textarea
+            {...register('notes')}
+            rows={3}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Notas adicionais (opcional)"
+          />
+          {errors.notes && (
+            <p className="mt-1.5 text-xs text-danger-600">{errors.notes.message}</p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-medium text-secondary-700">
+            Observações
+          </label>
+          <textarea
+            {...register('observations')}
+            rows={3}
+            className="flex w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm transition-colors placeholder:text-secondary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Observações do atendimento (opcional)"
+          />
+          {errors.observations && (
+            <p className="mt-1.5 text-xs text-danger-600">{errors.observations.message}</p>
+          )}
+        </div>
       </div>
 
-      <div className="flex gap-2 justify-end">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-secondary-100">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {appointment ? 'Salvar' : 'Criar'}
+        <Button type="submit" isLoading={isLoading}>
+          {appointment ? 'Salvar Alterações' : 'Criar Atendimento'}
         </Button>
       </div>
     </form>

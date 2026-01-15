@@ -10,10 +10,25 @@ import {
   useCompleteTreatmentPlan,
 } from '../features/treatment-plans/hooks'
 import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
+import { Card, CardContent } from '../components/ui/card'
+import { EmptyState } from '../components/ui/empty-state'
+import { Loading } from '../components/ui/loading'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
+import { toast } from '../components/ui/use-toast'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog'
@@ -53,6 +68,18 @@ export function TreatmentsPage() {
     createMutation.mutate(payload, {
       onSuccess: () => {
         setIsCreateOpen(false)
+        toast({
+          variant: 'success',
+          title: 'Tratamento criado com sucesso!',
+          description: 'O plano de tratamento foi adicionado ao sistema.',
+        })
+      },
+      onError: () => {
+        toast({
+          variant: 'danger',
+          title: 'Erro ao criar tratamento',
+          description: 'Ocorreu um erro ao criar o tratamento. Tente novamente.',
+        })
       },
     })
   }
@@ -77,6 +104,18 @@ export function TreatmentsPage() {
         {
           onSuccess: () => {
             setEditingPlan(null)
+            toast({
+              variant: 'success',
+              title: 'Tratamento atualizado com sucesso!',
+              description: 'As informações foram atualizadas.',
+            })
+          },
+          onError: () => {
+            toast({
+              variant: 'danger',
+              title: 'Erro ao atualizar tratamento',
+              description: 'Ocorreu um erro ao atualizar. Tente novamente.',
+            })
           },
         },
       )
@@ -88,159 +127,198 @@ export function TreatmentsPage() {
       deleteMutation.mutate(deletingId, {
         onSuccess: () => {
           setDeletingId(null)
+          toast({
+            variant: 'success',
+            title: 'Tratamento excluído com sucesso!',
+            description: 'O registro foi removido do sistema.',
+          })
+        },
+        onError: () => {
+          toast({
+            variant: 'danger',
+            title: 'Erro ao excluir tratamento',
+            description: 'Ocorreu um erro ao excluir. Tente novamente.',
+          })
         },
       })
     }
   }
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      draft: 'Rascunho',
-      active: 'Ativo',
-      paused: 'Pausado',
-      completed: 'Concluído',
-      cancelled: 'Cancelado',
+  const getStatusBadge = (status: string) => {
+    const config: Record<string, { variant: 'default' | 'success' | 'warning' | 'info' | 'danger'; label: string }> = {
+      draft: { variant: 'default', label: 'Rascunho' },
+      active: { variant: 'success', label: 'Ativo' },
+      paused: { variant: 'warning', label: 'Pausado' },
+      completed: { variant: 'info', label: 'Concluído' },
+      cancelled: { variant: 'danger', label: 'Cancelado' },
     }
-    return labels[status] || status
-  }
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      draft: 'bg-zinc-800 text-zinc-400',
-      active: 'bg-green-900/30 text-green-400',
-      paused: 'bg-yellow-900/30 text-yellow-400',
-      completed: 'bg-blue-900/30 text-blue-400',
-      cancelled: 'bg-red-900/30 text-red-400',
-    }
-    return colors[status] || 'bg-zinc-800 text-zinc-400'
+    return config[status] || { variant: 'default' as const, label: status }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Tratamentos</h2>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-secondary-900">Tratamentos</h2>
+          <p className="text-sm text-secondary-500 mt-1">
+            Gerencie os planos de tratamento dos atletas
+          </p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
           Novo Tratamento
         </Button>
       </div>
 
-      {isLoading && <p className="text-sm text-zinc-400">Carregando tratamentos...</p>}
-
-      {!isLoading && treatmentPlans.length === 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
-          <p className="text-sm text-zinc-400">Nenhum tratamento cadastrado</p>
-        </div>
-      )}
-
-      {!isLoading && treatmentPlans.length > 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden">
-          <table className="w-full">
-            <thead className="border-b border-zinc-800">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Atleta</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">
-                  Diagnóstico
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">
-                  Data Início
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">
-                  Data Término
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {treatmentPlans.map((plan) => (
-                <tr key={plan.id} className="border-b border-zinc-800 hover:bg-zinc-900/50">
-                  <td className="px-4 py-3 text-sm">
-                    {plan.athlete?.name || `Atleta #${plan.athleteId}`}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {plan.diagnosis.length > 50 ? `${plan.diagnosis.substring(0, 50)}...` : plan.diagnosis}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded ${getStatusColor(plan.status)}`}>
-                      {getStatusLabel(plan.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {new Date(plan.startDate).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {plan.endDate ? new Date(plan.endDate).toLocaleDateString('pt-BR') : '-'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      {plan.status === 'draft' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => activateMutation.mutate(plan.id)}
-                          className="h-8 w-8 p-0"
-                          title="Ativar"
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {plan.status === 'active' && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => pauseMutation.mutate(plan.id)}
-                            className="h-8 w-8 p-0"
-                            title="Pausar"
-                          >
-                            <Pause className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => completeMutation.mutate(plan.id)}
-                            className="h-8 w-8 p-0"
-                            title="Concluir"
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      {plan.status === 'paused' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => activateMutation.mutate(plan.id)}
-                          className="h-8 w-8 p-0"
-                          title="Retomar"
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingPlan(plan)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeletingId(plan.id)}
-                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Content */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-12">
+            <Loading size="lg" text="Carregando tratamentos..." />
+          </CardContent>
+        </Card>
+      ) : treatmentPlans.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <EmptyState
+              icon={<Plus className="h-8 w-8" />}
+              title="Nenhum tratamento cadastrado"
+              description="Comece adicionando o primeiro plano de tratamento"
+              action={
+                <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+                  Adicionar Tratamento
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Atleta</TableHead>
+                <TableHead>Diagnóstico</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data Início</TableHead>
+                <TableHead>Data Término</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {treatmentPlans.map((plan) => {
+                const statusConfig = getStatusBadge(plan.status)
+                return (
+                  <TableRow key={plan.id}>
+                    <TableCell className="font-medium text-secondary-900">
+                      {plan.athlete?.name || `Atleta #${plan.athleteId}`}
+                    </TableCell>
+                    <TableCell className="text-secondary-500 max-w-xs truncate">
+                      {plan.diagnosis}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                    </TableCell>
+                    <TableCell className="text-secondary-500">
+                      {new Date(plan.startDate).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell className="text-secondary-500">
+                      {plan.endDate ? new Date(plan.endDate).toLocaleDateString('pt-BR') : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        {plan.status === 'draft' && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => activateMutation.mutate(plan.id)}
+                              >
+                                <Play className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Ativar tratamento</TooltipContent>
+                          </Tooltip>
+                        )}
+                        {plan.status === 'active' && (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => pauseMutation.mutate(plan.id)}
+                                >
+                                  <Pause className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Pausar tratamento</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => completeMutation.mutate(plan.id)}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Concluir tratamento</TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
+                        {plan.status === 'paused' && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => activateMutation.mutate(plan.id)}
+                              >
+                                <Play className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Retomar tratamento</TooltipContent>
+                          </Tooltip>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setEditingPlan(plan)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar tratamento</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setDeletingId(plan.id)}
+                              className="text-danger-500 hover:text-danger-700 hover:bg-danger-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir tratamento</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+          <p className="text-sm text-secondary-500 text-center">
+            Mostrando {treatmentPlans.length} {treatmentPlans.length === 1 ? 'tratamento' : 'tratamentos'}
+          </p>
+        </>
       )}
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -274,6 +352,7 @@ export function TreatmentsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Dialog */}
       <Dialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
         <DialogContent>
           <DialogHeader>
@@ -282,19 +361,18 @@ export function TreatmentsPage() {
               Tem certeza que deseja excluir este tratamento? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2 justify-end">
+          <DialogFooter>
             <Button variant="outline" onClick={() => setDeletingId(null)}>
               Cancelar
             </Button>
             <Button
-              variant="default"
+              variant="danger"
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className="bg-red-600 hover:bg-red-500"
+              isLoading={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+              Excluir
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

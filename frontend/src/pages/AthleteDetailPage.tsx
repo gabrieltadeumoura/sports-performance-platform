@@ -1,9 +1,27 @@
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  Ruler,
+  Scale,
+  Calendar,
+  Activity,
+  AlertTriangle,
+  Dumbbell,
+} from 'lucide-react'
 import {
   useAthlete,
   useAthleteBiomechanics,
   useAthleteProfile,
 } from '../features/athletes/hooks'
+import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
+import { Avatar } from '../components/ui/avatar'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Loading, LoadingPage } from '../components/ui/loading'
+import { EmptyState } from '../components/ui/empty-state'
 
 export function AthleteDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -19,145 +37,304 @@ export function AthleteDetailPage() {
   const biomechanics = biomechanicsData?.data
 
   if (athleteLoading) {
-    return <div className="text-sm text-zinc-400">Carregando...</div>
+    return <LoadingPage text="Carregando dados do atleta..." />
   }
 
   if (!athlete) {
-    return <div className="text-sm text-red-400">Atleta não encontrado</div>
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <Button variant="ghost" asChild>
+          <Link to="/athletes">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para Atletas
+          </Link>
+        </Button>
+        <Card>
+          <CardContent className="py-12">
+            <EmptyState
+              icon={<User className="h-8 w-8" />}
+              title="Atleta nao encontrado"
+              description="O atleta solicitado nao existe ou foi removido"
+              action={
+                <Button asChild>
+                  <Link to="/athletes">Ver todos os atletas</Link>
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { variant: 'success' | 'warning' | 'danger' | 'default'; label: string }> = {
+      active: { variant: 'success', label: 'Ativo' },
+      treatment: { variant: 'warning', label: 'Em Tratamento' },
+      removed: { variant: 'danger', label: 'Removido' },
+      released: { variant: 'default', label: 'Liberado' },
+    }
+    return statusConfig[status] || { variant: 'default' as const, label: status }
+  }
+
+  const getRiskBadge = (level: string) => {
+    const config: Record<string, { variant: 'success' | 'warning' | 'danger'; label: string }> = {
+      low: { variant: 'success', label: 'Baixo' },
+      medium: { variant: 'warning', label: 'Medio' },
+      high: { variant: 'danger', label: 'Alto' },
+    }
+    return config[level.toLowerCase()] || { variant: 'warning' as const, label: level }
+  }
+
+  const statusConfig = getStatusBadge(athlete.status)
+  const age = athlete.birthDate ? new Date().getFullYear() - athlete.birthDate : null
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{athlete.name}</h1>
-        <p className="text-sm text-zinc-400">
-          {athlete.sport} • {athlete.email}
-        </p>
-      </div>
+    <div className="space-y-6 animate-fade-in">
+      {/* Back button */}
+      <Button variant="ghost" asChild>
+        <Link to="/athletes">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar para Atletas
+        </Link>
+      </Button>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <h2 className="text-sm font-medium text-zinc-400 mb-2">Informações Básicas</h2>
-          <div className="space-y-2 text-sm">
-            <div>
-              <span className="text-zinc-400">Idade:</span>{' '}
-              <span>
-                {athlete.birthDate
-                  ? `${new Date().getFullYear() - athlete.birthDate} anos`
-                  : '-'}
-              </span>
-            </div>
-            <div>
-              <span className="text-zinc-400">Altura:</span>{' '}
-              <span>{athlete.height ? `${athlete.height}cm` : '-'}</span>
-            </div>
-            <div>
-              <span className="text-zinc-400">Peso:</span>{' '}
-              <span>{athlete.weight ? `${athlete.weight}kg` : '-'}</span>
-            </div>
-            <div>
-              <span className="text-zinc-400">E-mail:</span> <span>{athlete.email}</span>
-            </div>
-            {athlete.phone && (
-              <div>
-                <span className="text-zinc-400">Telefone:</span> <span>{athlete.phone}</span>
+      {/* Header Card */}
+      <Card>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <Avatar alt={athlete.name} size="2xl" />
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-2xl font-bold text-secondary-900">{athlete.name}</h1>
+                <Badge variant={statusConfig.variant} size="lg">
+                  {statusConfig.label}
+                </Badge>
               </div>
+              <div className="flex flex-wrap items-center gap-4 mt-2 text-secondary-500">
+                <span className="flex items-center gap-1.5">
+                  <Dumbbell className="h-4 w-4" />
+                  {athlete.sport}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Mail className="h-4 w-4" />
+                  {athlete.email}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Info Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Basic Info Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <User className="h-5 w-5 text-primary-500" />
+              Informacoes Basicas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="space-y-3">
+              <div className="flex items-center justify-between">
+                <dt className="text-sm text-secondary-500 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Idade
+                </dt>
+                <dd className="text-sm font-medium text-secondary-900">
+                  {age !== null ? `${age} anos` : '-'}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-sm text-secondary-500 flex items-center gap-2">
+                  <Ruler className="h-4 w-4" />
+                  Altura
+                </dt>
+                <dd className="text-sm font-medium text-secondary-900">
+                  {athlete.height ? `${athlete.height} cm` : '-'}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-sm text-secondary-500 flex items-center gap-2">
+                  <Scale className="h-4 w-4" />
+                  Peso
+                </dt>
+                <dd className="text-sm font-medium text-secondary-900">
+                  {athlete.weight ? `${athlete.weight} kg` : '-'}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-sm text-secondary-500 flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  E-mail
+                </dt>
+                <dd className="text-sm font-medium text-secondary-900 truncate max-w-[150px]">
+                  {athlete.email}
+                </dd>
+              </div>
+              {athlete.phone && (
+                <div className="flex items-center justify-between">
+                  <dt className="text-sm text-secondary-500 flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    Telefone
+                  </dt>
+                  <dd className="text-sm font-medium text-secondary-900">{athlete.phone}</dd>
+                </div>
+              )}
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Injury Risk Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="h-5 w-5 text-warning-500" />
+              Risco de Lesao
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {profileLoading ? (
+              <Loading text="Carregando perfil..." />
+            ) : profile ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-secondary-500">Nivel de Risco</span>
+                  <Badge variant={getRiskBadge(profile.injuryRisk.level).variant} size="lg">
+                    {getRiskBadge(profile.injuryRisk.level).label}
+                  </Badge>
+                </div>
+
+                {profile.injuryRisk.factors.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-secondary-700 mb-2">Fatores de Risco</p>
+                    <ul className="space-y-1.5">
+                      {profile.injuryRisk.factors.map((factor, idx) => (
+                        <li
+                          key={idx}
+                          className="text-sm text-secondary-600 flex items-start gap-2"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-warning-400 mt-1.5 shrink-0" />
+                          {factor}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {profile.injuryRisk.recommendations.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-secondary-700 mb-2">Recomendacoes</p>
+                    <ul className="space-y-1.5">
+                      {profile.injuryRisk.recommendations.map((rec, idx) => (
+                        <li
+                          key={idx}
+                          className="text-sm text-secondary-600 flex items-start gap-2"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary-400 mt-1.5 shrink-0" />
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <EmptyState
+                title="Dados nao disponiveis"
+                description="Nao ha dados de risco de lesao para este atleta"
+              />
             )}
-            <div>
-              <span className="text-zinc-400">Status:</span>{' '}
-              <span
-                className={
-                  athlete.status === 'active'
-                    ? 'text-green-400'
-                    : athlete.status === 'treatment'
-                      ? 'text-yellow-400'
-                      : 'text-zinc-400'
-                }
-              >
-                {athlete.status === 'active'
-                  ? 'Ativo'
-                  : athlete.status === 'treatment'
-                    ? 'Em Tratamento'
-                    : athlete.status === 'removed'
-                      ? 'Removido'
-                      : 'Liberado'}
-              </span>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {profileLoading ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-            <div className="text-sm text-zinc-400">Carregando perfil...</div>
-          </div>
-        ) : profile ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-            <h2 className="text-sm font-medium text-zinc-400 mb-2">Risco de Lesão</h2>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-zinc-400">Nível:</span>{' '}
-                <span className="font-medium">{profile.injuryRisk.level}</span>
-              </div>
-              {profile.injuryRisk.factors.length > 0 && (
+        {/* Biomechanics Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Activity className="h-5 w-5 text-primary-500" />
+              Analise Biomecanica
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {biomechanicsLoading ? (
+              <Loading text="Carregando analise..." />
+            ) : biomechanics ? (
+              <div className="space-y-4">
                 <div>
-                  <div className="text-zinc-400 mb-1">Fatores:</div>
-                  <ul className="list-disc list-inside space-y-1">
-                    {profile.injuryRisk.factors.map((factor, idx) => (
-                      <li key={idx}>{factor}</li>
-                    ))}
-                  </ul>
+                  <p className="text-sm font-medium text-secondary-700 mb-1">Postura</p>
+                  <p className="text-sm text-secondary-600 bg-secondary-50 rounded-lg p-2">
+                    {biomechanics.analysis.posture}
+                  </p>
                 </div>
-              )}
-              {profile.injuryRisk.recommendations.length > 0 && (
-                <div>
-                  <div className="text-zinc-400 mb-1">Recomendações:</div>
-                  <ul className="list-disc list-inside space-y-1">
-                    {profile.injuryRisk.recommendations.map((rec, idx) => (
-                      <li key={idx}>{rec}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null}
 
-        {biomechanicsLoading ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-            <div className="text-sm text-zinc-400">Carregando análise biomecânica...</div>
-          </div>
-        ) : biomechanics ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-            <h2 className="text-sm font-medium text-zinc-400 mb-2">Análise Biomecânica</h2>
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-zinc-400">Postura:</span>{' '}
-                <span>{biomechanics.analysis.posture}</span>
+                {biomechanics.analysis.movementPatterns.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-secondary-700 mb-2">
+                      Padroes de Movimento
+                    </p>
+                    <ul className="space-y-1.5">
+                      {biomechanics.analysis.movementPatterns.map((pattern, idx) => (
+                        <li
+                          key={idx}
+                          className="text-sm text-secondary-600 flex items-start gap-2"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-success-400 mt-1.5 shrink-0" />
+                          {pattern}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {biomechanics.analysis.imbalances.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-secondary-700 mb-2">Desequilibrios</p>
+                    <ul className="space-y-1.5">
+                      {biomechanics.analysis.imbalances.map((imbalance, idx) => (
+                        <li
+                          key={idx}
+                          className="text-sm text-secondary-600 flex items-start gap-2"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-danger-400 mt-1.5 shrink-0" />
+                          {imbalance}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-              {biomechanics.analysis.movementPatterns.length > 0 && (
-                <div>
-                  <div className="text-zinc-400 mb-1">Padrões de Movimento:</div>
-                  <ul className="list-disc list-inside space-y-1">
-                    {biomechanics.analysis.movementPatterns.map((pattern, idx) => (
-                      <li key={idx}>{pattern}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {biomechanics.analysis.imbalances.length > 0 && (
-                <div>
-                  <div className="text-zinc-400 mb-1">Desequilíbrios:</div>
-                  <ul className="list-disc list-inside space-y-1">
-                    {biomechanics.analysis.imbalances.map((imbalance, idx) => (
-                      <li key={idx}>{imbalance}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null}
+            ) : (
+              <EmptyState
+                title="Dados nao disponiveis"
+                description="Nao ha analise biomecanica para este atleta"
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Acoes Rapidas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" asChild>
+              <Link to={`/injury-records?athlete=${athleteId}`}>Ver Historico de Lesoes</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to={`/treatments?athlete=${athleteId}`}>Ver Tratamentos</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to={`/appointments?athlete=${athleteId}`}>Ver Atendimentos</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

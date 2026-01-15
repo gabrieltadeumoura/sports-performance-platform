@@ -2,13 +2,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Mail, Lock, AlertCircle } from 'lucide-react'
 import { useLogin } from '../features/auth/hooks'
 import { useAuth } from '../features/auth/useAuth'
 import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Card, CardContent } from '../components/ui/card'
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email('Digite um e-mail valido'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
@@ -46,42 +49,76 @@ export function LoginPage() {
   const apiError = loginMutation.error instanceof Error ? loginMutation.error.message : null
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Entrar</h1>
-        <p className="text-sm text-zinc-400">Acesse o painel da plataforma esportiva.</p>
-      </div>
-      <div className="space-y-4">
-        <input
-          type="email"
-          {...register('email')}
-          placeholder="E-mail"
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        />
-        {errors.email && (
-          <p className="text-xs text-red-400">{errors.email.message}</p>
-        )}
-        <input
-          type="password"
-          {...register('password')}
-          placeholder="Senha"
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        />
-        {errors.password && (
-          <p className="text-xs text-red-400">{errors.password.message}</p>
-        )}
-        {apiError && <p className="text-xs text-red-400">{apiError}</p>}
-        <Button type="submit" disabled={loginMutation.isPending} className="w-full">
-          Entrar
-        </Button>
-        <p className="text-xs text-zinc-400 text-center">
-          Não tem conta?{' '}
-          <Link to="/register" className="text-sky-400 hover:underline">
-            Cadastre-se
-          </Link>
+    <div className="animate-fade-in">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-secondary-900">Bem-vindo de volta</h1>
+        <p className="mt-2 text-secondary-500">
+          Entre com suas credenciais para acessar sua conta
         </p>
       </div>
-    </form>
+
+      <Card variant="elevated" padding="lg">
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+            {apiError && (
+              <div className="flex items-center gap-2 rounded-lg bg-danger-50 p-3 text-sm text-danger-700">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{apiError}</span>
+              </div>
+            )}
+
+            <Input
+              type="email"
+              label="E-mail"
+              placeholder="seu@email.com"
+              leftIcon={<Mail className="h-4 w-4" />}
+              error={errors.email?.message}
+              {...register('email')}
+            />
+
+            <Input
+              type="password"
+              label="Senha"
+              placeholder="******"
+              leftIcon={<Lock className="h-4 w-4" />}
+              error={errors.password?.message}
+              {...register('password')}
+            />
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-secondary-600">Lembrar-me</span>
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700"
+              >
+                Esqueceu a senha?
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              isLoading={loginMutation.isPending}
+              className="w-full"
+              size="lg"
+            >
+              Entrar
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <p className="mt-6 text-center text-sm text-secondary-500">
+        Nao tem uma conta?{' '}
+        <Link to="/register" className="font-medium text-primary-600 hover:text-primary-700">
+          Cadastre-se gratuitamente
+        </Link>
+      </p>
+    </div>
   )
 }
-

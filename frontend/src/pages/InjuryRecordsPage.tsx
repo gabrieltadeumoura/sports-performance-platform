@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Stethoscope, Search } from 'lucide-react'
 import {
   useInjuryRecords,
   useCreateInjuryRecord,
@@ -7,12 +7,28 @@ import {
   useDeleteInjuryRecord,
 } from '../features/injury-records/hooks'
 import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Badge } from '../components/ui/badge'
+import { Card, CardContent } from '../components/ui/card'
+import { EmptyState } from '../components/ui/empty-state'
+import { Loading } from '../components/ui/loading'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
+import { toast } from '../components/ui/use-toast'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '../components/ui/dialog'
 import { InjuryRecordForm } from '../components/injury-records/InjuryRecordForm'
 import type {
@@ -33,13 +49,20 @@ export function InjuryRecordsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<InjuryRecord | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const records = data?.data ?? []
+
+  const filteredRecords = records.filter((record) =>
+    record.injuryType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    record.bodyPart.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (record as any).athlete?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const handleCreate = (values: CreateInjuryRecordFormValues) => {
     const injuryDate = new Date(values.injuryDate)
     injuryDate.setHours(0, 0, 0, 0)
-    
+
     const payload: any = {
       athleteId: values.athleteId,
       injuryType: values.injuryType,
@@ -65,6 +88,18 @@ export function InjuryRecordsPage() {
     createMutation.mutate(payload, {
       onSuccess: () => {
         setIsCreateOpen(false)
+        toast({
+          variant: 'success',
+          title: 'Lesão registrada com sucesso!',
+          description: 'O registro de lesão foi adicionado ao sistema.',
+        })
+      },
+      onError: () => {
+        toast({
+          variant: 'danger',
+          title: 'Erro ao registrar lesão',
+          description: 'Ocorreu um erro ao criar o registro. Tente novamente.',
+        })
       },
     })
   }
@@ -117,6 +152,18 @@ export function InjuryRecordsPage() {
         {
           onSuccess: () => {
             setEditingRecord(null)
+            toast({
+              variant: 'success',
+              title: 'Lesão atualizada com sucesso!',
+              description: 'As informações foram atualizadas.',
+            })
+          },
+          onError: () => {
+            toast({
+              variant: 'danger',
+              title: 'Erro ao atualizar lesão',
+              description: 'Ocorreu um erro ao atualizar o registro. Tente novamente.',
+            })
           },
         },
       )
@@ -128,138 +175,233 @@ export function InjuryRecordsPage() {
       deleteMutation.mutate(deletingId, {
         onSuccess: () => {
           setDeletingId(null)
+          toast({
+            variant: 'success',
+            title: 'Lesão excluída com sucesso!',
+            description: 'O registro foi removido do sistema.',
+          })
+        },
+        onError: () => {
+          toast({
+            variant: 'danger',
+            title: 'Erro ao excluir lesão',
+            description: 'Ocorreu um erro ao excluir o registro. Tente novamente.',
+          })
         },
       })
     }
   }
 
-  const getSeverityLabel = (severity: string) => {
-    const labels: Record<string, string> = {
-      minor: 'Leve',
-      moderate: 'Moderada',
-      severe: 'Grave',
-      critical: 'Crítica',
+  const getSeverityBadge = (severity: string) => {
+    const config: Record<string, { variant: 'success' | 'warning' | 'danger' | 'default'; label: string }> = {
+      minor: { variant: 'success', label: 'Leve' },
+      moderate: { variant: 'warning', label: 'Moderada' },
+      severe: { variant: 'danger', label: 'Grave' },
+      critical: { variant: 'danger', label: 'Critica' },
     }
-    return labels[severity] || severity
+    return config[severity] || { variant: 'default' as const, label: severity }
   }
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      active: 'Ativa',
-      recovering: 'Recuperando',
-      recovered: 'Recuperada',
+  const getStatusBadge = (status: string) => {
+    const config: Record<string, { variant: 'danger' | 'warning' | 'success' | 'default'; label: string }> = {
+      active: { variant: 'danger', label: 'Ativa' },
+      recovering: { variant: 'warning', label: 'Recuperando' },
+      recovered: { variant: 'success', label: 'Recuperada' },
     }
-    return labels[status] || status
-  }
-
-  const getSeverityColor = (severity: string) => {
-    const colors: Record<string, string> = {
-      minor: 'bg-green-900/30 text-green-400',
-      moderate: 'bg-yellow-900/30 text-yellow-400',
-      severe: 'bg-orange-900/30 text-orange-400',
-      critical: 'bg-red-900/30 text-red-400',
-    }
-    return colors[severity] || 'bg-zinc-800 text-zinc-400'
-  }
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      active: 'bg-red-900/30 text-red-400',
-      recovering: 'bg-yellow-900/30 text-yellow-400',
-      recovered: 'bg-green-900/30 text-green-400',
-    }
-    return colors[status] || 'bg-zinc-800 text-zinc-400'
+    return config[status] || { variant: 'default' as const, label: status }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Lesões</h2>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nova Lesão
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-secondary-900">Lesoes</h2>
+          <p className="text-sm text-secondary-500 mt-1">
+            Gerencie os registros de lesoes dos atletas
+          </p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+          Nova Lesao
         </Button>
       </div>
 
-      {isLoading && <p className="text-sm text-zinc-400">Carregando registros de lesão...</p>}
+      {/* Search */}
+      <Card padding="sm">
+        <CardContent>
+          <Input
+            placeholder="Buscar por tipo de lesao, parte do corpo ou atleta..."
+            leftIcon={<Search className="h-4 w-4" />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </CardContent>
+      </Card>
 
-      {!isLoading && records.length === 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
-          <p className="text-sm text-zinc-400">Nenhum registro de lesão cadastrado</p>
-        </div>
-      )}
+      {/* Content */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-12">
+            <Loading size="lg" text="Carregando lesoes..." />
+          </CardContent>
+        </Card>
+      ) : filteredRecords.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <EmptyState
+              icon={<Stethoscope className="h-8 w-8" />}
+              title={searchQuery ? 'Nenhuma lesao encontrada' : 'Nenhuma lesao cadastrada'}
+              description={
+                searchQuery
+                  ? 'Tente ajustar os termos de busca'
+                  : 'Comece adicionando o primeiro registro de lesao'
+              }
+              action={
+                !searchQuery && (
+                  <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+                    Adicionar Lesao
+                  </Button>
+                )
+              }
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* Desktop Table */}
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Atleta</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Parte do Corpo</TableHead>
+                  <TableHead>Severidade</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead className="text-right">Acoes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRecords.map((record) => {
+                  const severityConfig = getSeverityBadge(record.severity)
+                  const statusConfig = getStatusBadge(record.status)
 
-      {!isLoading && records.length > 0 && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden">
-          <table className="w-full">
-            <thead className="border-b border-zinc-800">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Atleta</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Tipo</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">
-                  Parte do Corpo
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">
-                  Severidade
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400">Data</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((record) => (
-                <tr key={record.id} className="border-b border-zinc-800 hover:bg-zinc-900/50">
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {(record as any).athlete?.name || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm">{record.injuryType}</td>
-                  <td className="px-4 py-3 text-sm text-zinc-300">{record.bodyPart}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded ${getSeverityColor(record.severity)}`}>
-                      {getSeverityLabel(record.severity)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded ${getStatusColor(record.status)}`}>
-                      {getStatusLabel(record.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-300">
-                    {new Date(record.injuryDate).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingRecord(record)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeletingId(record.id)}
-                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                  return (
+                    <TableRow key={record.id}>
+                      <TableCell className="font-medium">
+                        {(record as any).athlete?.name || '-'}
+                      </TableCell>
+                      <TableCell>{record.injuryType}</TableCell>
+                      <TableCell className="text-secondary-500">{record.bodyPart}</TableCell>
+                      <TableCell>
+                        <Badge variant={severityConfig.variant}>{severityConfig.label}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                      </TableCell>
+                      <TableCell className="text-secondary-500">
+                        {new Date(record.injuryDate).toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => setEditingRecord(record)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar lesão</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => setDeletingId(record.id)}
+                                className="text-danger-500 hover:text-danger-700 hover:bg-danger-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Excluir lesão</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile/Tablet Cards */}
+          <div className="grid gap-4 lg:hidden">
+            {filteredRecords.map((record) => {
+              const severityConfig = getSeverityBadge(record.severity)
+              const statusConfig = getStatusBadge(record.status)
+
+              return (
+                <Card key={record.id} padding="sm">
+                  <CardContent>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-secondary-900">
+                            {record.injuryType}
+                          </span>
+                          <Badge variant={severityConfig.variant} size="sm">
+                            {severityConfig.label}
+                          </Badge>
+                          <Badge variant={statusConfig.variant} size="sm">
+                            {statusConfig.label}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-secondary-500 mt-1">{record.bodyPart}</p>
+                        <p className="text-sm text-secondary-400 mt-0.5">
+                          {(record as any).athlete?.name || '-'} - {new Date(record.injuryDate).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setEditingRecord(record)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setDeletingId(record.id)}
+                          className="text-danger-500 hover:text-danger-700 hover:bg-danger-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+
+          <p className="text-sm text-secondary-500 text-center">
+            Mostrando {filteredRecords.length} de {records.length} lesoes
+          </p>
+        </>
       )}
 
+      {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Registro de Lesão</DialogTitle>
-            <DialogDescription>Adicione um novo registro de lesão</DialogDescription>
+            <DialogTitle>Novo Registro de Lesao</DialogTitle>
+            <DialogDescription>Adicione um novo registro de lesao</DialogDescription>
           </DialogHeader>
           <InjuryRecordForm
             onSubmit={(values) => handleCreate(values as CreateInjuryRecordFormValues)}
@@ -269,11 +411,12 @@ export function InjuryRecordsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Dialog */}
       <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Registro de Lesão</DialogTitle>
-            <DialogDescription>Atualize as informações do registro de lesão</DialogDescription>
+            <DialogTitle>Editar Registro de Lesao</DialogTitle>
+            <DialogDescription>Atualize as informacoes do registro de lesao</DialogDescription>
           </DialogHeader>
           {editingRecord && (
             <InjuryRecordForm
@@ -286,31 +429,30 @@ export function InjuryRecordsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Dialog */}
       <Dialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogTitle>Confirmar Exclusao</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir este registro de lesão? Esta ação não pode ser
+              Tem certeza que deseja excluir este registro de lesao? Esta acao nao pode ser
               desfeita.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2 justify-end">
+          <DialogFooter>
             <Button variant="outline" onClick={() => setDeletingId(null)}>
               Cancelar
             </Button>
             <Button
-              variant="default"
+              variant="danger"
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className="bg-red-600 hover:bg-red-500"
+              isLoading={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+              Excluir
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   )
 }
-

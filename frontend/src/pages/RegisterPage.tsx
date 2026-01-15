@@ -1,17 +1,20 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { User, Mail, Lock, AlertCircle } from 'lucide-react'
 import { useRegister, useLogin } from '../features/auth/hooks'
 import { useAuth } from '../features/auth/useAuth'
 import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Card, CardContent } from '../components/ui/card'
 
 const registerSchema = z
   .object({
-    name: z.string().min(2),
-    email: z.string().email(),
-    password: z.string().min(6),
-    confirmPassword: z.string().min(6),
+    name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres'),
+    email: z.string().email('Digite um e-mail valido'),
+    password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+    confirmPassword: z.string().min(6, 'A confirmacao deve ter pelo menos 6 caracteres'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ['confirmPassword'],
@@ -57,7 +60,7 @@ export function RegisterPage() {
               setAuthenticated(true, token)
               navigate('/dashboard', { replace: true })
             },
-          },
+          }
         )
       },
     })
@@ -70,61 +73,100 @@ export function RegisterPage() {
         ? loginMutation.error.message
         : null
 
+  const isLoading = registerMutation.isPending || loginMutation.isPending
+
   return (
-    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Criar conta</h1>
-        <p className="text-sm text-zinc-400">Registre-se para acessar a plataforma.</p>
+    <div className="animate-fade-in">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-secondary-900">Criar conta</h1>
+        <p className="mt-2 text-secondary-500">
+          Preencha os dados abaixo para criar sua conta
+        </p>
       </div>
-      <div className="space-y-4">
-        <input
-          type="text"
-          {...register('name')}
-          placeholder="Nome"
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        />
-        {errors.name && (
-          <p className="text-xs text-red-400">{errors.name.message}</p>
-        )}
-        <input
-          type="email"
-          {...register('email')}
-          placeholder="E-mail"
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        />
-        {errors.email && (
-          <p className="text-xs text-red-400">{errors.email.message}</p>
-        )}
-        <input
-          type="password"
-          {...register('password')}
-          placeholder="Senha"
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        />
-        {errors.password && (
-          <p className="text-xs text-red-400">{errors.password.message}</p>
-        )}
-        <input
-          type="password"
-          {...register('confirmPassword')}
-          placeholder="Confirmar senha"
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        />
-        {errors.confirmPassword && (
-          <p className="text-xs text-red-400">{errors.confirmPassword.message}</p>
-        )}
-        {apiError && (
-          <p className="text-xs text-red-400">{apiError}</p>
-        )}
-        <Button
-          type="submit"
-          disabled={registerMutation.isPending || loginMutation.isPending}
-          className="w-full"
-        >
-          Criar conta
-        </Button>
-      </div>
-    </form>
+
+      <Card variant="elevated" padding="lg">
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+            {apiError && (
+              <div className="flex items-center gap-2 rounded-lg bg-danger-50 p-3 text-sm text-danger-700">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{apiError}</span>
+              </div>
+            )}
+
+            <Input
+              type="text"
+              label="Nome completo"
+              placeholder="Seu nome"
+              leftIcon={<User className="h-4 w-4" />}
+              error={errors.name?.message}
+              {...register('name')}
+            />
+
+            <Input
+              type="email"
+              label="E-mail"
+              placeholder="seu@email.com"
+              leftIcon={<Mail className="h-4 w-4" />}
+              error={errors.email?.message}
+              {...register('email')}
+            />
+
+            <Input
+              type="password"
+              label="Senha"
+              placeholder="******"
+              leftIcon={<Lock className="h-4 w-4" />}
+              error={errors.password?.message}
+              hint="Minimo de 6 caracteres"
+              {...register('password')}
+            />
+
+            <Input
+              type="password"
+              label="Confirmar senha"
+              placeholder="******"
+              leftIcon={<Lock className="h-4 w-4" />}
+              error={errors.confirmPassword?.message}
+              {...register('confirmPassword')}
+            />
+
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                id="terms"
+                className="mt-1 h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+              />
+              <label htmlFor="terms" className="text-sm text-secondary-600">
+                Eu concordo com os{' '}
+                <Link to="/terms" className="text-primary-600 hover:text-primary-700">
+                  Termos de Servico
+                </Link>{' '}
+                e{' '}
+                <Link to="/privacy" className="text-primary-600 hover:text-primary-700">
+                  Politica de Privacidade
+                </Link>
+              </label>
+            </div>
+
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              className="w-full"
+              size="lg"
+            >
+              Criar conta
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <p className="mt-6 text-center text-sm text-secondary-500">
+        Ja tem uma conta?{' '}
+        <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
+          Fazer login
+        </Link>
+      </p>
+    </div>
   )
 }
-

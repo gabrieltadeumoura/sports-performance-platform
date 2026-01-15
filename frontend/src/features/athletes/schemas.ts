@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const statusAthleteEnum = z.enum(['active', 'treatment', 'removed', 'released'], {
-  errorMap: () => ({ message: 'Status é obrigatório' }),
+  message: 'Status e obrigatorio',
 })
 
 export const createAthleteSchema = z.object({

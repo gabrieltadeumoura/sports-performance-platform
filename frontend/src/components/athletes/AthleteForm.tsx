@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Select } from '../ui/select'
 import {
   createAthleteSchema,
   type CreateAthleteFormValues,
@@ -14,6 +16,13 @@ type AthleteFormProps = {
   onCancel: () => void
   isLoading?: boolean
 }
+
+const statusOptions = [
+  { value: 'active', label: 'Ativo' },
+  { value: 'treatment', label: 'Em Tratamento' },
+  { value: 'removed', label: 'Removido' },
+  { value: 'released', label: 'Liberado' },
+]
 
 export function AthleteForm({ athlete, onSubmit, onCancel, isLoading }: AthleteFormProps) {
   const {
@@ -46,104 +55,87 @@ export function AthleteForm({ athlete, onSubmit, onCancel, isLoading }: AthleteF
   })
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Nome</label>
-        <input
-          {...register('name')}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        />
-        {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
-      </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Input
+            label="Nome completo"
+            placeholder="Digite o nome do paciente"
+            error={errors.name?.message}
+            {...register('name')}
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Esporte</label>
-        <input
+        <Input
+          label="Esporte"
+          placeholder="Ex: Futebol, Natacao..."
+          error={errors.sport?.message}
           {...register('sport')}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
         />
-        {errors.sport && (
-          <p className="text-xs text-red-400 mt-1">{errors.sport.message}</p>
-        )}
-      </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Ano de Nascimento</label>
-          <input
-            type="number"
-            {...register('birthDate', { valueAsNumber: true })}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          />
-          {errors.birthDate && (
-            <p className="text-xs text-red-400 mt-1">{errors.birthDate.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Altura (cm)</label>
-          <input
-            type="number"
-            {...register('height', { valueAsNumber: true, setValueAs: (v) => (v === '' ? null : v) })}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          />
-          {errors.height && <p className="text-xs text-red-400 mt-1">{errors.height.message}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1 text-zinc-50">Peso (kg)</label>
-          <input
-            type="number"
-            step="0.1"
-            {...register('weight', { valueAsNumber: true, setValueAs: (v) => (v === '' ? null : v) })}
-            className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-          />
-          {errors.weight && <p className="text-xs text-red-400 mt-1">{errors.weight.message}</p>}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">E-mail</label>
-        <input
+        <Input
+          label="E-mail"
           type="email"
+          placeholder="paciente@email.com"
+          error={errors.email?.message}
           {...register('email')}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
         />
-        {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Telefone</label>
-        <input
+        <Input
+          label="Telefone"
           type="tel"
+          placeholder="(00) 00000-0000"
+          error={errors.phone?.message}
           {...register('phone')}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
         />
-        {errors.phone && <p className="text-xs text-red-400 mt-1">{errors.phone.message}</p>}
+
+        <Input
+          label="Ano de Nascimento"
+          type="number"
+          placeholder="Ex: 1995"
+          error={errors.birthDate?.message}
+          {...register('birthDate', { valueAsNumber: true })}
+        />
+
+        <Input
+          label="Altura (cm)"
+          type="number"
+          placeholder="Ex: 180"
+          error={errors.height?.message}
+          {...register('height', {
+            valueAsNumber: true,
+            setValueAs: (v) => (v === '' || v === undefined ? null : Number(v)),
+          })}
+        />
+
+        <Input
+          label="Peso (kg)"
+          type="number"
+          step="0.1"
+          placeholder="Ex: 75.5"
+          error={errors.weight?.message}
+          {...register('weight', {
+            valueAsNumber: true,
+            setValueAs: (v) => (v === '' || v === undefined ? null : Number(v)),
+          })}
+        />
+
+        <div className="sm:col-span-2">
+          <Select
+            label="Status"
+            options={statusOptions}
+            error={errors.status?.message}
+            {...register('status')}
+          />
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1 text-zinc-50">Status</label>
-        <select
-          {...register('status')}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-        >
-          <option value="active">Ativo</option>
-          <option value="treatment">Em Tratamento</option>
-          <option value="removed">Removido</option>
-          <option value="released">Liberado</option>
-        </select>
-        {errors.status && (
-          <p className="text-xs text-red-400 mt-1">{errors.status.message}</p>
-        )}
-      </div>
-
-      <div className="flex gap-2 justify-end">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-secondary-100">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {athlete ? 'Salvar' : 'Criar'}
+        <Button type="submit" isLoading={isLoading}>
+          {athlete ? 'Salvar Alteracoes' : 'Criar Atleta'}
         </Button>
       </div>
     </form>
