@@ -8,6 +8,7 @@ import { useAuth } from '../features/auth/useAuth'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent } from '../components/ui/card'
+import { toast } from '../components/ui/use-toast'
 
 const registerSchema = z
   .object({
@@ -52,6 +53,11 @@ export function RegisterPage() {
 
     registerMutation.mutate(payload, {
       onSuccess() {
+        toast({
+          variant: 'success',
+          title: 'Conta criada com sucesso!',
+          description: 'Realizando login automático...',
+        })
         loginMutation.mutate(
           { email: values.email, password: values.password },
           {
@@ -60,8 +66,22 @@ export function RegisterPage() {
               setAuthenticated(true, token)
               navigate('/dashboard', { replace: true })
             },
+            onError: () => {
+              toast({
+                variant: 'danger',
+                title: 'Erro ao fazer login',
+                description: 'Conta criada, mas ocorreu um erro ao fazer login. Tente fazer login manualmente.',
+              })
+            },
           }
         )
+      },
+      onError: () => {
+        toast({
+          variant: 'danger',
+          title: 'Erro ao criar conta',
+          description: 'Ocorreu um erro ao criar sua conta. Verifique os dados e tente novamente.',
+        })
       },
     })
   }

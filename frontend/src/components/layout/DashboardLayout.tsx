@@ -16,6 +16,7 @@ import { useAuth } from '../../features/auth/useAuth'
 import { Button } from '../ui/button'
 import { setAuthToken } from '../../lib/api'
 import { cn } from '../../lib/utils'
+import { toast } from '../ui/use-toast'
 
 const navigationItems = [
   {
@@ -55,6 +56,7 @@ export function DashboardLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />
@@ -63,11 +65,13 @@ export function DashboardLayout() {
   const handleLogout = () => {
     logout()
     setAuthToken(null)
+    toast({
+      variant: 'success',
+      title: 'Logout realizado com sucesso!',
+      description: 'Você foi desconectado. Até logo!',
+    })
     navigate('/login', { replace: true })
   }
-
-  const currentPath = location.pathname
-  const currentPage = navigationItems.find((item) => currentPath.startsWith(item.href))
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -82,17 +86,27 @@ export function DashboardLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 transform bg-white border-r border-secondary-200 transition-transform duration-200 ease-in-out lg:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          'fixed inset-y-0 left-0 z-50 bg-white border-r border-secondary-200 transition-all duration-200 ease-in-out lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          sidebarCollapsed ? 'lg:w-16' : 'lg:w-64 w-64'
         )}
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-secondary-100">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600">
+          <Link 
+            to="/dashboard" 
+            className={cn(
+              "flex items-center gap-3 transition-all duration-200",
+              sidebarCollapsed && "lg:justify-center"
+            )}
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 shrink-0">
               <Activity className="h-5 w-5 text-white" />
             </div>
-            <div>
+            <div className={cn(
+              "transition-opacity duration-200",
+              sidebarCollapsed ? "lg:opacity-0 lg:w-0 lg:overflow-hidden" : "opacity-100"
+            )}>
               <span className="text-base font-semibold text-secondary-900">
                 Sports
               </span>
@@ -114,7 +128,7 @@ export function DashboardLayout() {
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-3">
           {navigationItems.map((item) => {
-            const isActive = currentPath.startsWith(item.href)
+            const isActive = location.pathname.startsWith(item.href)
             const Icon = item.icon
 
             return (
@@ -135,8 +149,13 @@ export function DashboardLayout() {
                     isActive ? 'text-primary-600' : 'text-secondary-400'
                   )}
                 />
-                <span className="flex-1">{item.name}</span>
-                {isActive && (
+                <span className={cn(
+                  "flex-1 transition-opacity duration-200",
+                  sidebarCollapsed && "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                )}>
+                  {item.name}
+                </span>
+                {isActive && !sidebarCollapsed && (
                   <ChevronLeft className="h-4 w-4 text-primary-400" />
                 )}
               </Link>
@@ -149,46 +168,45 @@ export function DashboardLayout() {
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start gap-3 text-secondary-600 hover:text-danger-600 hover:bg-danger-50"
+            className={cn(
+              "w-full text-secondary-600 hover:text-danger-600 hover:bg-danger-50 transition-all duration-200",
+              sidebarCollapsed ? "lg:justify-center" : "justify-start gap-3"
+            )}
+            title={sidebarCollapsed ? "Sair" : undefined}
           >
-            <LogOut className="h-5 w-5" />
-            <span>Sair</span>
+            <LogOut className="h-5 w-5 shrink-0" />
+            <span className={cn(
+              "transition-opacity duration-200",
+              sidebarCollapsed && "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+            )}>
+              Sair
+            </span>
           </Button>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className={cn(
+        "transition-all duration-200",
+        sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
+      )}>
         {/* Top header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-secondary-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-secondary-200 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60 px-4 sm:px-6">
           <Button
             variant="ghost"
             size="icon-sm"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => {
+              const isDesktop = window.innerWidth >= 1024
+              if (isDesktop) {
+                setSidebarCollapsed(!sidebarCollapsed)
+              } else {
+                setSidebarOpen(true)
+              }
+            }}
+            title={sidebarCollapsed ? "Expandir sidebar" : "Minimizar sidebar"}
           >
             <Menu className="h-5 w-5" />
           </Button>
-
-          {/* Breadcrumb / Page title */}
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold text-secondary-900">
-              {currentPage?.name || 'Dashboard'}
-            </h1>
-          </div>
-
-          {/* Right side actions */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="hidden sm:flex gap-2 text-secondary-600"
-            >
-              <LogOut className="h-4 w-4" />
-              Sair
-            </Button>
-          </div>
         </header>
 
         {/* Page content */}

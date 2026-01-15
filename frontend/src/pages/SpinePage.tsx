@@ -8,14 +8,14 @@ export function SpinePage() {
       <div>
         <h2 className="text-2xl font-bold text-secondary-900">Coluna Vertebral</h2>
         <p className="text-sm text-secondary-500 mt-1">
-          Visualização interativa do modelo 3D da coluna vertebral
+          Visualização interativa do modelo 3D da coluna vertebral para uso durante consultas
         </p>
       </div>
 
       {/* 3D Viewer */}
       <Card>
-        <CardContent className="p-4">
-          <div className="w-full" style={{ height: '600px' }}>
+        <CardContent className="p-0 overflow-hidden">
+          <div className="w-full" style={{ height: '700px' }}>
             <SpineViewer />
           </div>
         </CardContent>

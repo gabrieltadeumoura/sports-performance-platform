@@ -94,9 +94,9 @@ export function DashboardPage() {
       {/* Welcome Alert */}
       {!overviewLoading && overview && (
         <Alert variant="info">
-          <AlertTitle>Bem-vindo ao Dashboard</AlertTitle>
+          <AlertTitle>Bem-vindo a SportsPerformance</AlertTitle>
           <AlertDescription>
-            Acompanhe as metricas e indicadores dos seus atletas em tempo real.
+            Visualize as metricas e indicadores dos seus pacientes.
           </AlertDescription>
         </Alert>
       )}
@@ -215,7 +215,8 @@ export function DashboardPage() {
                 {allAlerts.map((alert, index) => (
                   <div
                     key={`${alert.athlete_id}-${alert.alert_type}-${index}`}
-                    className="flex items-start gap-3 rounded-lg border border-secondary-100 bg-secondary-50/50 p-3 transition-colors hover:bg-secondary-100/50"
+                    className="flex items-start gap-3 rounded-lg border border-secondary-100 bg-secondary-50/50 p-3 transition-all duration-200 hover:bg-secondary-100/50 hover:shadow-sm hover:-translate-y-0.5"
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div
                       className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
@@ -306,7 +307,7 @@ export function DashboardPage() {
                     return (
                       <div
                         key={appointment.id}
-                        className="flex items-center gap-3 rounded-lg border border-secondary-100 bg-white p-3 transition-all hover:shadow-sm hover:border-secondary-200"
+                        className="flex items-center gap-3 rounded-lg border border-secondary-100 bg-white p-3 transition-all duration-200 hover:shadow-md hover:border-secondary-200 hover:-translate-y-0.5"
                       >
                         <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary-50 text-primary-700">
                           <span className="text-xs font-medium">{dateStr.split('/')[1]}</span>

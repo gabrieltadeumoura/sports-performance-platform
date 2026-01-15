@@ -158,6 +158,17 @@ body {
 *:focus-visible {
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
+  outline-width: 2px;
+  transition: outline-offset 0.1s ease;
+}
+
+/* Smooth focus transitions */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-offset: 3px;
 }
 
 /* Custom scrollbar */
@@ -174,27 +185,51 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--border-secondary);
   border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Animation classes */
 .animate-fade-in {
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-slide-up {
-  animation: slideUp 0.3s ease-out;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-slide-down {
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.2s ease-out;
+  animation: scaleIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-stagger-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
 @keyframes fadeIn {
@@ -203,18 +238,50 @@ body {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
+  from { opacity: 0; transform: translateY(-16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-bounce {
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Hover lift effect for cards */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Pulse animation for important elements */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Loading spinner */

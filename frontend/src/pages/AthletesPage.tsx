@@ -241,7 +241,7 @@ export function AthletesPage() {
                       <TableCell>
                         <Link
                           to={`/athletes/${athlete.id}`}
-                          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                          className="flex items-center gap-3 hover:opacity-80 transition-all duration-200 hover:text-primary-600"
                         >
                           <Avatar alt={athlete.name} size="sm" />
                           <span className="font-medium text-secondary-900 hover:text-primary-600">

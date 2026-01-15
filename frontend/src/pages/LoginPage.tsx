@@ -8,6 +8,7 @@ import { useAuth } from '../features/auth/useAuth'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent } from '../components/ui/card'
+import { toast } from '../components/ui/use-toast'
 
 const loginSchema = z.object({
   email: z.string().email('Digite um e-mail valido'),
@@ -41,7 +42,19 @@ export function LoginPage() {
       onSuccess(data) {
         const token = data.token
         setAuthenticated(true, token)
+        toast({
+          variant: 'success',
+          title: 'Login realizado com sucesso!',
+          description: 'Bem-vindo de volta. Redirecionando...',
+        })
         navigate(from, { replace: true })
+      },
+      onError: () => {
+        toast({
+          variant: 'danger',
+          title: 'Erro ao fazer login',
+          description: 'Verifique suas credenciais e tente novamente.',
+        })
       },
     })
   }

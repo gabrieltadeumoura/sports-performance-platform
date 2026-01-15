@@ -19,7 +19,7 @@ const cardVariants = cva(
         lg: 'p-8',
       },
       interactive: {
-        true: 'cursor-pointer hover:shadow-card-hover hover:border-secondary-300',
+        true: 'cursor-pointer transition-all duration-200 hover:shadow-card-hover hover:border-secondary-300 hover:-translate-y-0.5 active:translate-y-0',
         false: '',
       },
     },
