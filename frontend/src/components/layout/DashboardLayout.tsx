@@ -30,7 +30,7 @@ const navigationItems = [
     icon: Users,
   },
   {
-    name: 'Lesoes',
+    name: 'Lesões',
     href: '/injury-records',
     icon: Stethoscope,
   },
@@ -66,8 +66,8 @@ export function DashboardLayout() {
     logout()
     setAuthToken(null)
     toast({
-      variant: 'success',
-      title: 'Logout realizado com sucesso!',
+      variant: 'danger',
+      title: 'Logout realizado',
       description: 'Você foi desconectado. Até logo!',
     })
     navigate('/login', { replace: true })
@@ -86,13 +86,13 @@ export function DashboardLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 bg-white border-r border-secondary-200 transition-all duration-200 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 bg-white border-r border-secondary-200 transition-all duration-200 ease-in-out lg:translate-x-0 flex flex-col',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           sidebarCollapsed ? 'lg:w-16' : 'lg:w-64 w-64'
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-secondary-100">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-secondary-100 shrink-0">
           <Link 
             to="/dashboard" 
             className={cn(
@@ -100,8 +100,12 @@ export function DashboardLayout() {
               sidebarCollapsed && "lg:justify-center"
             )}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 shrink-0">
-              <Activity className="h-5 w-5 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center shrink-0">
+              <img
+                src="/icon .png"
+                alt="SportsPerformance Logo"
+                className="h-full w-auto object-contain"
+              />
             </div>
             <div className={cn(
               "transition-opacity duration-200",
@@ -126,7 +130,7 @@ export function DashboardLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
           {navigationItems.map((item) => {
             const isActive = location.pathname.startsWith(item.href)
             const Icon = item.icon
@@ -163,8 +167,8 @@ export function DashboardLayout() {
           })}
         </nav>
 
-        {/* User section */}
-        <div className="border-t border-secondary-100 p-3">
+        {/* User section - fixed at bottom */}
+        <div className="border-t border-secondary-100 p-3 mt-auto mb-4 shrink-0">
           <Button
             variant="ghost"
             onClick={handleLogout}

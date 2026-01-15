@@ -34,7 +34,11 @@ import {
   DialogTitle,
 } from '../components/ui/dialog'
 import { AppointmentForm } from '../components/appointments/AppointmentForm'
-import type { Appointment } from '../features/appointments/api'
+import type {
+  Appointment,
+  CreateAppointmentPayload,
+  UpdateAppointmentPayload,
+} from '../features/appointments/api'
 import type {
   CreateAppointmentFormValues,
   UpdateAppointmentFormValues,
@@ -60,7 +64,7 @@ export function AppointmentsPage() {
   const handleCreate = (values: CreateAppointmentFormValues) => {
     const appointmentDate = new Date(values.appointmentDate)
 
-    const payload: any = {
+    const payload: CreateAppointmentPayload = {
       athleteId: values.athleteId,
       appointmentDate: appointmentDate.toISOString(),
       durationMinutes: values.durationMinutes ?? 60,
@@ -102,7 +106,7 @@ export function AppointmentsPage() {
 
   const handleUpdate = (values: UpdateAppointmentFormValues) => {
     if (editingAppointment) {
-      const payload: any = {}
+      const payload: UpdateAppointmentPayload = {}
 
       if (values.appointmentDate) {
         payload.appointmentDate = new Date(values.appointmentDate).toISOString()
@@ -223,9 +227,9 @@ export function AppointmentsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-secondary-900">Atendimentos</h2>
+          <h2 className="text-2xl font-bold bg-linear-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Atendimentos</h2>
           <p className="text-sm text-secondary-500 mt-1">
-            Gerencie os atendimentos e consultas dos atletas
+            Gerencie os atendimentos e consultas dos pacientes
           </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
@@ -260,7 +264,7 @@ export function AppointmentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Atleta</TableHead>
+                <TableHead>Paciente</TableHead>
                 <TableHead>Data/Hora</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Duração</TableHead>
@@ -274,7 +278,7 @@ export function AppointmentsPage() {
                 return (
                   <TableRow key={appointment.id}>
                     <TableCell className="font-medium text-secondary-900">
-                      {appointment.athlete?.name || `Atleta #${appointment.athleteId}`}
+                      {appointment.athlete?.name || `Paciente #${appointment.athleteId}`}
                     </TableCell>
                     <TableCell className="text-secondary-500">
                       {new Date(appointment.appointmentDate).toLocaleString('pt-BR', {

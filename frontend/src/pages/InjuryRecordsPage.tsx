@@ -56,14 +56,14 @@ export function InjuryRecordsPage() {
   const filteredRecords = records.filter((record) =>
     record.injuryType.toLowerCase().includes(searchQuery.toLowerCase()) ||
     record.bodyPart.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (record as any).athlete?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    record.athlete?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleCreate = (values: CreateInjuryRecordFormValues) => {
     const injuryDate = new Date(values.injuryDate)
     injuryDate.setHours(0, 0, 0, 0)
 
-    const payload: any = {
+    const payload: CreateInjuryRecordPayload = {
       athleteId: values.athleteId,
       injuryType: values.injuryType,
       bodyPart: values.bodyPart,
@@ -73,16 +73,17 @@ export function InjuryRecordsPage() {
       treatmentProtocol: values.treatmentProtocol,
       status: values.status,
       injuryDate: injuryDate.toISOString(),
-    }
-
-    if (values.actualRecovery !== null && values.actualRecovery !== undefined) {
-      payload.actualRecovery = values.actualRecovery
-    }
-
-    if (values.recoveryDate) {
-      const recoveryDate = new Date(values.recoveryDate)
-      recoveryDate.setHours(0, 0, 0, 0)
-      payload.recoveryDate = recoveryDate.toISOString()
+      actualRecovery:
+        values.actualRecovery !== null && values.actualRecovery !== undefined
+          ? values.actualRecovery
+          : null,
+      recoveryDate: values.recoveryDate
+        ? (() => {
+            const recoveryDate = new Date(values.recoveryDate!)
+            recoveryDate.setHours(0, 0, 0, 0)
+            return recoveryDate.toISOString()
+          })()
+        : null,
     }
 
     createMutation.mutate(payload, {
@@ -216,13 +217,13 @@ export function InjuryRecordsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-secondary-900">Lesoes</h2>
+          <h2 className="text-2xl font-bold bg-linear-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Lesões</h2>
           <p className="text-sm text-secondary-500 mt-1">
-            Gerencie os registros de lesoes dos atletas
+            Gerencie os registros de lesões dos pacientes
           </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
-          Nova Lesao
+          Nova Lesão
         </Button>
       </div>
 
@@ -230,7 +231,7 @@ export function InjuryRecordsPage() {
       <Card padding="sm">
         <CardContent>
           <Input
-            placeholder="Buscar por tipo de lesao, parte do corpo ou atleta..."
+            placeholder="Buscar por tipo de lesão, parte do corpo ou paciente..."
             leftIcon={<Search className="h-4 w-4" />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -242,7 +243,7 @@ export function InjuryRecordsPage() {
       {isLoading ? (
         <Card>
           <CardContent className="py-12">
-            <Loading size="lg" text="Carregando lesoes..." />
+            <Loading size="lg" text="Carregando lesões..." />
           </CardContent>
         </Card>
       ) : filteredRecords.length === 0 ? (
@@ -250,16 +251,16 @@ export function InjuryRecordsPage() {
           <CardContent className="py-12">
             <EmptyState
               icon={<Stethoscope className="h-8 w-8" />}
-              title={searchQuery ? 'Nenhuma lesao encontrada' : 'Nenhuma lesao cadastrada'}
+              title={searchQuery ? 'Nenhuma lesão encontrada' : 'Nenhuma lesão cadastrada'}
               description={
                 searchQuery
                   ? 'Tente ajustar os termos de busca'
-                  : 'Comece adicionando o primeiro registro de lesao'
+                  : 'Comece adicionando o primeiro registro de lesão'
               }
               action={
                 !searchQuery && (
                   <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
-                    Adicionar Lesao
+                    Adicionar Lesão
                   </Button>
                 )
               }
@@ -273,7 +274,7 @@ export function InjuryRecordsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Atleta</TableHead>
+                  <TableHead>Paciente</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Parte do Corpo</TableHead>
                   <TableHead>Severidade</TableHead>
@@ -290,7 +291,7 @@ export function InjuryRecordsPage() {
                   return (
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">
-                        {(record as any).athlete?.name || '-'}
+                        {record.athlete?.name || '-'}
                       </TableCell>
                       <TableCell>{record.injuryType}</TableCell>
                       <TableCell className="text-secondary-500">{record.bodyPart}</TableCell>
@@ -363,7 +364,7 @@ export function InjuryRecordsPage() {
                         </div>
                         <p className="text-sm text-secondary-500 mt-1">{record.bodyPart}</p>
                         <p className="text-sm text-secondary-400 mt-0.5">
-                          {(record as any).athlete?.name || '-'} - {new Date(record.injuryDate).toLocaleDateString('pt-BR')}
+                          {record.athlete?.name || '-'} - {new Date(record.injuryDate).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                       <div className="flex gap-1">
@@ -391,7 +392,7 @@ export function InjuryRecordsPage() {
           </div>
 
           <p className="text-sm text-secondary-500 text-center">
-            Mostrando {filteredRecords.length} de {records.length} lesoes
+            Mostrando {filteredRecords.length} de {records.length} lesões
           </p>
         </>
       )}
@@ -400,8 +401,8 @@ export function InjuryRecordsPage() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Registro de Lesao</DialogTitle>
-            <DialogDescription>Adicione um novo registro de lesao</DialogDescription>
+            <DialogTitle>Novo Registro de Lesão</DialogTitle>
+            <DialogDescription>Adicione um novo registro de lesão</DialogDescription>
           </DialogHeader>
           <InjuryRecordForm
             onSubmit={(values) => handleCreate(values as CreateInjuryRecordFormValues)}
@@ -415,8 +416,8 @@ export function InjuryRecordsPage() {
       <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
         <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Registro de Lesao</DialogTitle>
-            <DialogDescription>Atualize as informacoes do registro de lesao</DialogDescription>
+            <DialogTitle>Editar Registro de Lesão</DialogTitle>
+            <DialogDescription>Atualize as informações do registro de lesão</DialogDescription>
           </DialogHeader>
           {editingRecord && (
             <InjuryRecordForm
@@ -435,7 +436,7 @@ export function InjuryRecordsPage() {
           <DialogHeader>
             <DialogTitle>Confirmar Exclusao</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir este registro de lesao? Esta acao nao pode ser
+              Tem certeza que deseja excluir este registro de lesão? Esta ação não pode ser
               desfeita.
             </DialogDescription>
           </DialogHeader>

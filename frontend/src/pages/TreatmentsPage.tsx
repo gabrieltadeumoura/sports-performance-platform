@@ -160,9 +160,9 @@ export function TreatmentsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-secondary-900">Tratamentos</h2>
+          <h2 className="text-2xl font-bold bg-linear-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Tratamentos</h2>
           <p className="text-sm text-secondary-500 mt-1">
-            Gerencie os planos de tratamento dos atletas
+            Gerencie os planos de tratamento dos pacientes
           </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
@@ -197,7 +197,7 @@ export function TreatmentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Atleta</TableHead>
+                <TableHead>Paciente</TableHead>
                 <TableHead>Diagnóstico</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data Início</TableHead>
@@ -211,7 +211,7 @@ export function TreatmentsPage() {
                 return (
                   <TableRow key={plan.id}>
                     <TableCell className="font-medium text-secondary-900">
-                      {plan.athlete?.name || `Atleta #${plan.athleteId}`}
+                      {plan.athlete?.name || `Paciente #${plan.athleteId}`}
                     </TableCell>
                     <TableCell className="text-secondary-500 max-w-xs truncate">
                       {plan.diagnosis}

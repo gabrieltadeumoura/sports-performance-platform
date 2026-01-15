@@ -40,7 +40,7 @@ export default class DashboardController {
 			if (cached) {
 				return response.header('X-Cache', 'HIT').json(JSON.parse(cached))
 			}
-		} catch (error) {}
+		} catch (_error) {}
 
 		try {
 			const [
@@ -48,7 +48,7 @@ export default class DashboardController {
 				activeAthletesResult,
 				treatmentAthletesResult,
 				recentInjuriesResult,
-				recentAssessmentsResult,
+				_recentAssessmentsResult,
 			] = await Promise.all([
 				db
 					.from('athletes')
@@ -102,7 +102,7 @@ export default class DashboardController {
 
 			try {
 				await redis.setex(cacheKey, 300, JSON.stringify(data))
-			} catch (error) {}
+			} catch (_error) {}
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
@@ -123,7 +123,7 @@ export default class DashboardController {
 			if (cached) {
 				return response.header('X-Cache', 'HIT').json(JSON.parse(cached))
 			}
-		} catch (error) {}
+		} catch (_error) {}
 
 		try {
 			const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -150,16 +150,6 @@ export default class DashboardController {
 				.groupByRaw('DATE(injury_records.created_at)')
 				.orderByRaw('DATE(injury_records.created_at)')
 
-			const treatmentTrends = await db
-				.from('treatment_plans')
-				.join('athletes', 'athletes.id', 'treatment_plans.athlete_id')
-				.select(db.raw('DATE(treatment_plans.created_at) as date'))
-				.count('treatment_plans.id as new_treatments')
-				.where('athletes.user_id', userId)
-				.where('treatment_plans.created_at', '>=', sevenDaysAgo)
-				.groupByRaw('DATE(treatment_plans.created_at)')
-				.orderByRaw('DATE(treatment_plans.created_at)')
-
 			const data = {
 				daily_metrics: assessmentTrends.map((metric) => ({
 					date: metric.date,
@@ -178,7 +168,7 @@ export default class DashboardController {
 
 			try {
 				await redis.setex(cacheKey, 1800, JSON.stringify(data))
-			} catch (error) {}
+			} catch (_error) {}
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
@@ -199,7 +189,7 @@ export default class DashboardController {
 			if (cached) {
 				return response.header('X-Cache', 'HIT').json(JSON.parse(cached))
 			}
-		} catch (error) {}
+		} catch (_error) {}
 
 		try {
 			const now = new Date()
@@ -279,7 +269,10 @@ export default class DashboardController {
 						name: injury.name,
 						injury_type: injury.injury_type,
 						alert_type: 'recent_injury',
-						severity: injury.severity === 'severe' || injury.severity === 'critical' ? 'high' : 'medium',
+						severity:
+							injury.severity === 'severe' || injury.severity === 'critical'
+								? 'high'
+								: 'medium',
 						time_ago: this.getTimeAgo(createdAt),
 					}
 				}),
@@ -289,7 +282,7 @@ export default class DashboardController {
 
 			try {
 				await redis.setex(cacheKey, 60, JSON.stringify(data))
-			} catch (error) {}
+			} catch (_error) {}
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
@@ -310,7 +303,7 @@ export default class DashboardController {
 			if (cached) {
 				return response.header('X-Cache', 'HIT').json(JSON.parse(cached))
 			}
-		} catch (error) {}
+		} catch (_error) {}
 
 		try {
 			const performanceBySport = await db
@@ -343,7 +336,7 @@ export default class DashboardController {
 
 			try {
 				await redis.setex(cacheKey, 600, JSON.stringify(data))
-			} catch (error) {}
+			} catch (_error) {}
 
 			return response.header('X-Cache', 'MISS').json(data)
 		} catch (error) {
@@ -370,11 +363,12 @@ export default class DashboardController {
 		}
 	}
 
-	private calculatePerformanceScore(vo2: number, fatigue: number): number {
-		const vo2Score = Math.min((vo2 / 60) * 50, 50)
-		const fatigueScore = Math.max(50 - (fatigue / 100) * 50, 0)
-		return Math.round(vo2Score + fatigueScore)
-	}
+	// TODO: Método reservado para cálculo de performance no futuro
+	// private calculatePerformanceScore(vo2: number, fatigue: number): number {
+	// 	const vo2Score = Math.min((vo2 / 60) * 50, 50)
+	// 	const fatigueScore = Math.max(50 - (fatigue / 100) * 50, 0)
+	// 	return Math.round(vo2Score + fatigueScore)
+	// }
 
 	private processStatusDistribution(statusData: any[]): any {
 		const distribution: any = {

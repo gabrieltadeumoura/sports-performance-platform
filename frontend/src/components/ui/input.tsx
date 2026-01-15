@@ -54,7 +54,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const inputId = id || React.useId()
+    const generatedId = React.useId()
+    const inputId = id || generatedId
     const hasError = !!error
     const inputVariant = hasError ? 'error' : variant
 
@@ -113,4 +114,5 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Input, inputVariants }

@@ -120,7 +120,9 @@ export class AppointmentService {
 		year: number,
 		month: number,
 	): Promise<Appointment[]> {
-		const startDate = DateTime.fromObject({ year, month, day: 1 }).startOf('day')
+		const startDate = DateTime.fromObject({ year, month, day: 1 }).startOf(
+			'day',
+		)
 		const endDate = startDate.endOf('month')
 
 		return await Appointment.query()

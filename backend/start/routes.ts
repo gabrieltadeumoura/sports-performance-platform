@@ -62,10 +62,6 @@ router
 					AthletesController,
 					'showAthleteProfileWithInjuryRisk',
 				])
-				router.get('/:id/biomechanics', [
-					AthletesController,
-					'analyzeBiomechanicalProfile',
-				])
 				router.patch('/:id', [AthletesController, 'update'])
 				router.delete('/:id', [AthletesController, 'delete'])
 			})

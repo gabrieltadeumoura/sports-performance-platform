@@ -158,7 +158,7 @@ export function AthletesPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-secondary-900">Pacientes</h2>
+          <h2 className="text-2xl font-bold bg-linear-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Pacientes</h2>
           <p className="text-sm text-secondary-500 mt-1">
             Gerencie os pacientes cadastrados na plataforma
           </p>

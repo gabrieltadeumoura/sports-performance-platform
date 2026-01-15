@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import PhysicalAssessment from '#models/physical_assessment'
 import Athlete from '#models/athlete'
+import PhysicalAssessment from '#models/physical_assessment'
 import type { AssessmentTypeEnum } from '../enums/type_physical_assessment.js'
 
 export class PhysicalAssessmentService {

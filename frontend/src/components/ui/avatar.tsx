@@ -99,4 +99,5 @@ function AvatarGroup({ max = 4, size, className, children, ...props }: AvatarGro
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Avatar, AvatarGroup, avatarVariants }

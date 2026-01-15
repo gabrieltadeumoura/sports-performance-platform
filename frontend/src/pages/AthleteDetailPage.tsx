@@ -37,7 +37,7 @@ export function AthleteDetailPage() {
   const biomechanics = biomechanicsData?.data
 
   if (athleteLoading) {
-    return <LoadingPage text="Carregando dados do atleta..." />
+    return <LoadingPage text="Carregando dados do paciente..." />
   }
 
   if (!athlete) {
@@ -46,18 +46,18 @@ export function AthleteDetailPage() {
         <Button variant="ghost" asChild>
           <Link to="/athletes">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar para Atletas
+            Voltar para Pacientes
           </Link>
         </Button>
         <Card>
           <CardContent className="py-12">
             <EmptyState
               icon={<User className="h-8 w-8" />}
-              title="Atleta nao encontrado"
-              description="O atleta solicitado nao existe ou foi removido"
+              title="Paciente não encontrado"
+              description="O paciente solicitado não existe ou foi removido"
               action={
                 <Button asChild>
-                  <Link to="/athletes">Ver todos os atletas</Link>
+                  <Link to="/athletes">Ver todos os pacientes</Link>
                 </Button>
               }
             />
@@ -192,7 +192,7 @@ export function AthleteDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <AlertTriangle className="h-5 w-5 text-warning-500" />
-              Risco de Lesao
+              Risco de Lesão
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -244,7 +244,7 @@ export function AthleteDetailPage() {
             ) : (
               <EmptyState
                 title="Dados nao disponiveis"
-                description="Nao ha dados de risco de lesao para este atleta"
+                description="Não há dados de risco de lesão para este paciente"
               />
             )}
           </CardContent>
@@ -309,7 +309,7 @@ export function AthleteDetailPage() {
             ) : (
               <EmptyState
                 title="Dados nao disponiveis"
-                description="Nao ha analise biomecanica para este atleta"
+                description="Não há análise biomecânica para este paciente"
               />
             )}
           </CardContent>
@@ -324,7 +324,7 @@ export function AthleteDetailPage() {
         <CardContent>
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" asChild>
-              <Link to={`/injury-records?athlete=${athleteId}`}>Ver Historico de Lesoes</Link>
+              <Link to={`/injury-records?athlete=${athleteId}`}>Ver Historico de Lesões</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link to={`/treatments?athlete=${athleteId}`}>Ver Tratamentos</Link>

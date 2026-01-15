@@ -25,7 +25,7 @@
 			"semicolons": "asNeeded"
 		}
 	},
-	"assist": { 
+	"assist": {
 		"enabled": true,
 		"actions": {
 			"source": {

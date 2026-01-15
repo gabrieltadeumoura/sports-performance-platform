@@ -52,7 +52,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    const selectId = id || React.useId()
+    const generatedId = React.useId()
+    const selectId = id || generatedId
     const hasError = !!error
     const selectVariant = hasError ? 'error' : variant
 
@@ -113,4 +114,5 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
 Select.displayName = 'Select'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Select, selectVariants }

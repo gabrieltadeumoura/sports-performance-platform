@@ -130,7 +130,7 @@ export default class AthletesController {
 			if (cached) {
 				return response.header('X-Cache', 'HIT').json(JSON.parse(cached))
 			}
-		} catch (error) {
+		} catch (_error) {
 			return 'Move on without cached'
 		}
 
@@ -173,7 +173,7 @@ export default class AthletesController {
 
 		try {
 			await redis.setex(cacheKey, 300, JSON.stringify(result))
-		} catch (error) {}
+		} catch (_error) {}
 		return response.header('X-Cache', 'MISS').json(result)
 	}
 
@@ -191,7 +191,7 @@ export default class AthletesController {
 			if (cached) {
 				return response.header('X-Cache', 'HIT').json(JSON.parse(cached))
 			}
-		} catch (error) {}
+		} catch (_error) {}
 
 		const athlete = await Athlete.query()
 			.select([
@@ -218,9 +218,8 @@ export default class AthletesController {
 
 		try {
 			await redis.setex(cacheKey, 3600, JSON.stringify(result))
-		} catch (error) {}
+		} catch (_error) {}
 
 		return response.header('X-Cache', 'MISS').json(result)
 	}
-
 }

@@ -12,7 +12,8 @@ const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   SwitchProps
 >(({ className, label, description, id, ...props }, ref) => {
-  const switchId = id || React.useId()
+  const generatedId = React.useId()
+  const switchId = id || generatedId
 
   const switchElement = (
     <SwitchPrimitives.Root

@@ -13,5 +13,8 @@ export const CreateInjuryRecordSchema = vine.object({
 	treatmentProtocol: vine.string(),
 	status: vine.enum(Object.values(StatusInjuryRecordEnum)),
 	injuryDate: vine.date({ formats: ['iso8601'] }),
-	recoveryDate: vine.date({ formats: ['iso8601'] }).nullable().optional(),
+	recoveryDate: vine
+		.date({ formats: ['iso8601'] })
+		.nullable()
+		.optional(),
 })

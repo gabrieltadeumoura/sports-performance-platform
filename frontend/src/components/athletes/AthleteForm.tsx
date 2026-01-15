@@ -135,7 +135,7 @@ export function AthleteForm({ athlete, onSubmit, onCancel, isLoading }: AthleteF
           Cancelar
         </Button>
         <Button type="submit" isLoading={isLoading}>
-          {athlete ? 'Salvar Alteracoes' : 'Criar Atleta'}
+          {athlete ? 'Salvar Alterações' : 'Criar Paciente'}
         </Button>
       </div>
     </form>

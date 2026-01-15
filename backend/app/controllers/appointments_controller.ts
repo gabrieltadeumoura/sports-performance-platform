@@ -177,14 +177,17 @@ export default class AppointmentsController {
 		let appointmentDate: Date
 		try {
 			appointmentDate = new Date(newDate)
-			if (isNaN(appointmentDate.getTime())) {
+			if (Number.isNaN(appointmentDate.getTime())) {
 				return response.status(400).json({ message: 'Data inválida' })
 			}
-		} catch (error) {
+		} catch (_error) {
 			return response.status(400).json({ message: 'Data inválida' })
 		}
 
-		const updated = await AppointmentService.reschedule(params.id, appointmentDate)
+		const updated = await AppointmentService.reschedule(
+			params.id,
+			appointmentDate,
+		)
 
 		return response.json({
 			status: 200,

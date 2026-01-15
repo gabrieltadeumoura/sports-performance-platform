@@ -36,7 +36,9 @@ export default class InjuryRecordsController {
 
 		const toCreate: any = {
 			...payload,
-			injuryDate: payload.injuryDate ? new Date(payload.injuryDate) : new Date(),
+			injuryDate: payload.injuryDate
+				? new Date(payload.injuryDate)
+				: new Date(),
 		}
 
 		if (payload.recoveryDate) {

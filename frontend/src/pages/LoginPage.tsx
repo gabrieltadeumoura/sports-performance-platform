@@ -45,7 +45,7 @@ export function LoginPage() {
         toast({
           variant: 'success',
           title: 'Login realizado com sucesso!',
-          description: 'Bem-vindo de volta. Redirecionando...',
+          description: 'Bem-vindo(a) de volta. Redirecionando...',
         })
         navigate(from, { replace: true })
       },
@@ -64,7 +64,7 @@ export function LoginPage() {
   return (
     <div className="animate-fade-in">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-secondary-900">Bem-vindo de volta</h1>
+        <h1 className="text-2xl font-bold text-secondary-900">Bem-vindo(a) de volta</h1>
         <p className="mt-2 text-secondary-500">
           Entre com suas credenciais para acessar sua conta
         </p>

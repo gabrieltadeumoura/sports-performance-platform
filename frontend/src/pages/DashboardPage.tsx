@@ -22,7 +22,6 @@ import { Button } from '../components/ui/button'
 import { Loading } from '../components/ui/loading'
 import { EmptyState } from '../components/ui/empty-state'
 import { Skeleton } from '../components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
 
 export function DashboardPage() {
@@ -41,7 +40,7 @@ export function DashboardPage() {
     ? [
         ...alertsData.critical_fatigue.map((a) => ({
           ...a,
-          message: `Fadiga critica: ${a.fatigue_score}%`,
+          message: `Fadiga crítica: ${a.fatigue_score}%`,
         })),
         ...alertsData.high_risk_active.map((a) => ({
           ...a,
@@ -49,7 +48,7 @@ export function DashboardPage() {
         })),
         ...alertsData.recent_injuries.map((a) => ({
           ...a,
-          message: `Nova lesao: ${a.injury_type}`,
+          message: `Nova lesão: ${a.injury_type}`,
         })),
       ]
     : []
@@ -91,15 +90,28 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Welcome Alert */}
-      {!overviewLoading && overview && (
-        <Alert variant="info">
-          <AlertTitle>Bem-vindo a SportsPerformance</AlertTitle>
-          <AlertDescription>
-            Visualize as metricas e indicadores dos seus pacientes.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Header with Logo */}
+      <Card className="bg-linear-to-br from-primary-50 to-primary-100/50 border-primary-200 overflow-hidden">
+        <CardContent className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="shrink-0 flex items-center justify-center">
+              <img
+                src="/icon .png"
+                alt="SportsPerformance Logo"
+                className="h-24 sm:h-28 w-auto object-contain"
+              />
+            </div>
+            <div className="flex-1 text-center sm:text-left flex flex-col justify-center sm:justify-start">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent mb-2">
+                Bem-vindo(a) a SportsPerformance
+              </h1>
+              <p className="text-sm sm:text-base text-secondary-600 max-w-2xl mx-auto sm:mx-0">
+                Visualize as métricas e indicadores dos seus pacientes em tempo real
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -116,7 +128,7 @@ export function DashboardPage() {
               <TooltipTrigger asChild>
                 <div>
                   <StatsCard
-                    title="Total de Atletas"
+                    title="Total de Pacientes"
                     value={overview?.total_athletes ?? 0}
                     icon={<Users className="h-5 w-5" />}
                     variant="primary"
@@ -124,14 +136,14 @@ export function DashboardPage() {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Numero total de atletas cadastrados no sistema</p>
+                <p>Número total de pacientes cadastrados no sistema</p>
               </TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div>
                   <StatsCard
-                    title="Atletas Ativos"
+                    title="Pacientes Ativos"
                     value={overview?.active_athletes ?? 0}
                     icon={<Activity className="h-5 w-5" />}
                     variant="success"
@@ -139,7 +151,7 @@ export function DashboardPage() {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Atletas ativos e disponiveis para treino</p>
+                <p>Pacientes ativos e disponíveis para tratamento</p>
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -154,14 +166,14 @@ export function DashboardPage() {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Atletas com risco elevado de lesao</p>
+                <p>Pacientes com risco elevado de lesão</p>
               </TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div>
                   <StatsCard
-                    title="Fadiga Critica"
+                    title="Fadiga Crítica"
                     value={overview?.critical_fatigue_athletes ?? 0}
                     icon={<Heart className="h-5 w-5" />}
                     variant="danger"
@@ -169,7 +181,7 @@ export function DashboardPage() {
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Atletas com nivel de fadiga critico</p>
+                <p>Pacientes com nível de fadiga crítico</p>
               </TooltipContent>
             </Tooltip>
           </>
@@ -178,7 +190,7 @@ export function DashboardPage() {
 
       {/* VO2 Max Card */}
       {overview && overview.avg_vo2_max > 0 && (
-        <Card>
+        <Card className="bg-primary-50/50 border-primary-200">
           <CardContent className="flex items-center gap-4 py-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
               <TrendingUp className="h-6 w-6 text-primary-600" />
@@ -194,11 +206,11 @@ export function DashboardPage() {
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Alerts Section */}
-        <Card>
+        <Card className="bg-primary-50/50 border-primary-200">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning-500" />
-              Alertas Criticos
+              Alertas Críticos
             </CardTitle>
             <Badge variant="warning">{allAlerts.length}</Badge>
           </CardHeader>
@@ -208,7 +220,7 @@ export function DashboardPage() {
             ) : allAlerts.length === 0 ? (
               <EmptyState
                 title="Nenhum alerta"
-                description="Todos os atletas estao dentro dos parametros normais"
+                description="Todos os pacientes estão dentro dos parâmetros normais"
               />
             ) : (
               <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
@@ -257,11 +269,11 @@ export function DashboardPage() {
         </Card>
 
         {/* Appointments Section */}
-        <Card>
+        <Card className="bg-primary-50/50 border-primary-200">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary-500" />
-              Atendimentos do Mes
+              Atendimentos do Mês
             </CardTitle>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/appointments" className='flex justify-center items-center'>
@@ -277,7 +289,7 @@ export function DashboardPage() {
               <EmptyState
                 icon={<Calendar className="h-6 w-6" />}
                 title="Nenhum atendimento"
-                description="Nenhum atendimento agendado para este mes"
+                description="Nenhum atendimento agendado para este mês"
                 action={
                   <Button size="sm" asChild>
                     <Link to="/appointments">Agendar atendimento</Link>
@@ -307,7 +319,7 @@ export function DashboardPage() {
                     return (
                       <div
                         key={appointment.id}
-                        className="flex items-center gap-3 rounded-lg border border-secondary-100 bg-white p-3 transition-all duration-200 hover:shadow-md hover:border-secondary-200 hover:-translate-y-0.5"
+                        className="flex items-center gap-3 rounded-lg border border-primary-200 bg-white/80 p-3 transition-all duration-200 hover:shadow-md hover:border-primary-300 hover:-translate-y-0.5"
                       >
                         <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-primary-50 text-primary-700">
                           <span className="text-xs font-medium">{dateStr.split('/')[1]}</span>
@@ -316,7 +328,7 @@ export function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-secondary-900 truncate">
-                              {appointment.athlete?.name || `Atleta #${appointment.athleteId}`}
+                              {appointment.athlete?.name || `Paciente #${appointment.athleteId}`}
                             </span>
                             <Badge variant={statusConfig.variant} size="sm">
                               {statusConfig.label}
@@ -337,7 +349,7 @@ export function DashboardPage() {
 
       {/* Trends Section */}
       {!trendsLoading && trends && trends.daily_metrics.length > 0 && (
-        <Card>
+        <Card className="bg-primary-50/50 border-primary-200">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary-500" />
@@ -385,7 +397,7 @@ export function DashboardPage() {
               {/* Injury Trends */}
               {trends.injury_trends.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-secondary-700 mb-3">Lesoes Recentes</h4>
+                  <h4 className="text-sm font-medium text-secondary-700 mb-3">Lesões Recentes</h4>
                   <div className="space-y-2">
                     {trends.injury_trends.slice(-5).map((trend, index) => (
                       <div
@@ -399,7 +411,7 @@ export function DashboardPage() {
                           })}
                         </span>
                         <Badge variant={trend.new_injuries > 0 ? 'danger' : 'success'} size="sm">
-                          {trend.new_injuries} nova{trend.new_injuries !== 1 ? 's' : ''} lesao{trend.new_injuries !== 1 ? 'es' : ''}
+                          {trend.new_injuries} nova{trend.new_injuries !== 1 ? 's' : ''} lesão{trend.new_injuries !== 1 ? 'ões' : ''}
                         </Badge>
                       </div>
                     ))}
@@ -412,7 +424,7 @@ export function DashboardPage() {
       )}
 
       {trendsLoading && (
-        <Card>
+        <Card className="bg-primary-50/50 border-primary-200">
           <CardContent className="py-8">
             <Loading text="Carregando tendencias..." />
           </CardContent>

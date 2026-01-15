@@ -94,7 +94,7 @@ export function InjuryRecordForm({
   ]
 
   const athleteOptions = [
-    { value: '0', label: 'Selecione um atleta' },
+    { value: '0', label: 'Selecione um paciente' },
     ...athletes.map((athlete) => ({
       value: String(athlete.id),
       label: athlete.name,
@@ -106,7 +106,7 @@ export function InjuryRecordForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Select
-            label="Atleta"
+            label="Paciente"
             options={athleteOptions}
             error={errors.athleteId?.message}
             disabled={!!injuryRecord}
