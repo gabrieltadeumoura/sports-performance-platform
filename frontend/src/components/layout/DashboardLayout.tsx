@@ -10,6 +10,7 @@ import {
   Calendar,
   Activity,
   ChevronLeft,
+  Bot,
 } from 'lucide-react'
 import { Navigate, Outlet, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../features/auth/useAuth'
@@ -48,6 +49,11 @@ const navigationItems = [
     name: 'Coluna Vertebral',
     href: '/spine',
     icon: Activity,
+  },
+  {
+    name: 'ProscoutAI',
+    href: '/proscout-ai',
+    icon: Bot,
   },
 ]
 

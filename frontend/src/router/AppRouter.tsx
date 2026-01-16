@@ -10,6 +10,7 @@ import { LoginPage } from '../pages/LoginPage'
 import { SpinePage } from '../pages/SpinePage'
 import { TreatmentsPage } from '../pages/TreatmentsPage'
 import { RegisterPage } from '../pages/RegisterPage'
+import { ProscoutAIPage } from '../pages/ProscoutAIPage'
 
 export function AppRouter() {
   return (
@@ -27,6 +28,7 @@ export function AppRouter() {
         <Route path="/treatments" element={<TreatmentsPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
         <Route path="/spine" element={<SpinePage />} />
+        <Route path="/proscout-ai" element={<ProscoutAIPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

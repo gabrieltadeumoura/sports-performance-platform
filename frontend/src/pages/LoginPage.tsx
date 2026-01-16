@@ -98,14 +98,7 @@ export function LoginPage() {
               {...register('password')}
             />
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-secondary-600">Lembrar-me</span>
-              </label>
+            <div className="flex items-center">
               <Link
                 to="/forgot-password"
                 className="text-sm font-medium text-primary-600 hover:text-primary-700"
