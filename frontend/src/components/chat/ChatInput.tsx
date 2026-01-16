@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent, type FormEvent } from 'react'
 import { Send, Sparkles } from 'lucide-react'
 import { Button } from '../ui/button'
+import { Textarea } from '../ui/textarea'
 import { cn } from '../../lib/utils'
 
 interface ChatInputProps {
@@ -67,34 +68,28 @@ export function ChatInput({
 			<form onSubmit={handleSubmit} className="relative">
 				<div
 					className={cn(
-						'flex items-end gap-2 rounded-xl border bg-red transition-all duration-200',
-						'focus-within:border-primary-500',
+						'flex items-end gap-2 rounded-xl border bg-white transition-all duration-200',
+						'focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20',
 						canSend
 							? 'border-primary-400'
 							: 'border-secondary-300 hover:border-secondary-400'
 					)}
 				>
-					<div className="flex-1 relative">
-						<textarea
-							ref={textareaRef}
-							value={message}
-							onChange={(e) => setMessage(e.target.value)}
-							onKeyDown={handleKeyDown}
-							placeholder={placeholder}
-							disabled={disabled}
-							rows={1}
-							className={cn(
-								'w-full resize-none overflow-y-auto bg-transparent px-4 py-3 text-sm text-secondary-900',
-								'placeholder:text-secondary-400 focus:outline-none',
-								'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-secondary-300',
-								disabled && 'cursor-not-allowed opacity-50'
-							)}
-							style={{
-								minHeight: '44px',
-								maxHeight: '200px',
-							}}
-						/>
-					</div>
+					<Textarea
+						ref={textareaRef}
+						value={message}
+						onChange={(e) => setMessage(e.target.value)}
+						onKeyDown={handleKeyDown}
+						placeholder={placeholder}
+						disabled={disabled}
+						rows={1}
+						className={cn(
+							'flex-1 resize-none !border-0 !shadow-none !outline-none',
+							'focus-visible:!ring-0',
+							'min-h-[44px] max-h-[200px] overflow-y-auto',
+							'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-secondary-300'
+						)}
+					/>
 
 					<div className="flex items-end px-2 pb-2">
 						<Button
