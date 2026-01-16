@@ -90,7 +90,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header with Logo */}
+      
       <Card className="bg-linear-to-br from-primary-50 to-primary-100/50 border-primary-200 overflow-hidden">
         <CardContent className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -113,7 +113,7 @@ export function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Stats Grid */}
+      
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {overviewLoading ? (
           <>
@@ -188,7 +188,7 @@ export function DashboardPage() {
         )}
       </div>
 
-      {/* VO2 Max Card */}
+      
       {overview && overview.avg_vo2_max > 0 && (
         <Card className="bg-primary-50/50 border-primary-200">
           <CardContent className="flex items-center gap-4 py-4">
@@ -203,9 +203,9 @@ export function DashboardPage() {
         </Card>
       )}
 
-      {/* Main Content Grid */}
+      
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Alerts Section */}
+        
         <Card className="bg-primary-50/50 border-primary-200">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="flex items-center gap-2">
@@ -268,7 +268,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Appointments Section */}
+        
         <Card className="bg-primary-50/50 border-primary-200">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="flex items-center gap-2">
@@ -347,7 +347,7 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      {/* Trends Section */}
+      
       {!trendsLoading && trends && trends.daily_metrics.length > 0 && (
         <Card className="bg-primary-50/50 border-primary-200">
           <CardHeader className="pb-4">
@@ -358,7 +358,7 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Daily Metrics */}
+              
               <div>
                 <h4 className="text-sm font-medium text-secondary-700 mb-3">Metricas Diarias</h4>
                 <div className="space-y-2">
@@ -394,7 +394,7 @@ export function DashboardPage() {
                 </div>
               </div>
 
-              {/* Injury Trends */}
+              
               {trends.injury_trends.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-secondary-700 mb-3">Lesões Recentes</h4>

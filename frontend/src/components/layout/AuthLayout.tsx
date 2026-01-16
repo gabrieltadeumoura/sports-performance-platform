@@ -4,7 +4,7 @@ import { Outlet, Link } from 'react-router-dom'
 export function AuthLayout() {
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Branding */}
+      
       <div className="hidden lg:flex lg:w-1/2 xl:w-2/5 bg-linear-to-br from-primary-600 via-primary-700 to-secondary-900 p-12 flex-col justify-between">
         <div>
           <Link to="/" className="flex items-center gap-3">

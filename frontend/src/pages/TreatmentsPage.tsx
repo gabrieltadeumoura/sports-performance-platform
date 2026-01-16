@@ -157,7 +157,7 @@ export function TreatmentsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold bg-linear-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Tratamentos</h2>
@@ -170,7 +170,7 @@ export function TreatmentsPage() {
         </Button>
       </div>
 
-      {/* Content */}
+      
       {isLoading ? (
         <Card>
           <CardContent className="py-12">
@@ -352,7 +352,7 @@ export function TreatmentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
+      
       <Dialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
         <DialogContent>
           <DialogHeader>

@@ -81,7 +81,6 @@ export function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-secondary-50">
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-secondary-950/50 backdrop-blur-sm lg:hidden"
@@ -89,7 +88,6 @@ export function DashboardLayout() {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 bg-white border-r border-secondary-200 transition-all duration-200 ease-in-out lg:translate-x-0 flex flex-col',
@@ -97,7 +95,6 @@ export function DashboardLayout() {
           sidebarCollapsed ? 'lg:w-16' : 'lg:w-64 w-64'
         )}
       >
-        {/* Logo */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-secondary-100 shrink-0">
           <Link 
             to="/dashboard" 
@@ -135,7 +132,6 @@ export function DashboardLayout() {
           </Button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
           {navigationItems.map((item) => {
             const isActive = location.pathname.startsWith(item.href)
@@ -173,7 +169,6 @@ export function DashboardLayout() {
           })}
         </nav>
 
-        {/* User section - fixed at bottom */}
         <div className="border-t border-secondary-100 p-3 mt-auto mb-4 shrink-0">
           <Button
             variant="ghost"
@@ -195,12 +190,10 @@ export function DashboardLayout() {
         </div>
       </aside>
 
-      {/* Main content */}
       <div className={cn(
         "transition-all duration-200",
         sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
       )}>
-        {/* Top header */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-secondary-200 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60 px-4 sm:px-6">
           <Button
             variant="ghost"
@@ -219,7 +212,6 @@ export function DashboardLayout() {
           </Button>
         </header>
 
-        {/* Page content */}
         <main className="p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl">
             <Outlet />

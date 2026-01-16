@@ -91,7 +91,7 @@ export function AthleteDetailPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Back button */}
+      
       <Button variant="ghost" asChild>
         <Link to="/athletes">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -99,7 +99,7 @@ export function AthleteDetailPage() {
         </Link>
       </Button>
 
-      {/* Header Card */}
+      
       <Card>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -126,9 +126,9 @@ export function AthleteDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Info Grid */}
+      
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Basic Info Card */}
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -187,7 +187,7 @@ export function AthleteDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Injury Risk Card */}
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -250,7 +250,7 @@ export function AthleteDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Biomechanics Card */}
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -316,7 +316,7 @@ export function AthleteDetailPage() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Acoes Rapidas</CardTitle>

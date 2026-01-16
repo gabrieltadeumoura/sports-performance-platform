@@ -73,13 +73,13 @@ function SkeletonTable({ rows = 5, columns = 4, className, ...props }: SkeletonT
       )}
       {...props}
     >
-      {/* Header */}
+      
       <div className="flex gap-4 bg-secondary-50 p-4 border-b border-secondary-200">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />
         ))}
       </div>
-      {/* Rows */}
+      
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div
           key={rowIndex}

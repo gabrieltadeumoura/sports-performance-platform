@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog'
-// import type { CreatePhysicalAssessmentPayload } from '../features/physical-tests/api'
 
 export function PhysicalTestsPage() {
   const { data, isLoading } = usePhysicalAssessments()

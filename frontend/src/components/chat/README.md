@@ -113,7 +113,6 @@ export function ProscoutAIPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSendMessage = (content: string) => {
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -122,7 +121,6 @@ export function ProscoutAIPage() {
     }
     setMessages((prev) => [...prev, userMessage])
 
-    // Simulate AI response
     setIsLoading(true)
     setTimeout(() => {
       const aiResponse: Message = {

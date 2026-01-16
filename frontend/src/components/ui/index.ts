@@ -1,4 +1,3 @@
-// UI Components barrel export
 export * from './alert'
 export * from './avatar'
 export * from './badge'

@@ -1,4 +1,12 @@
-import { useState, useRef, useEffect, type KeyboardEvent, type FormEvent } from 'react'
+import {
+	useState,
+	useRef,
+	useEffect,
+	useImperativeHandle,
+	forwardRef,
+	type KeyboardEvent,
+	type FormEvent,
+} from 'react'
 import { Send, Sparkles } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
@@ -12,15 +20,29 @@ interface ChatInputProps {
 	centered?: boolean
 }
 
-export function ChatInput({
-	onSend,
-	disabled = false,
-	placeholder = 'Digite sua mensagem...',
-	className,
-	centered = false,
-}: ChatInputProps) {
-	const [message, setMessage] = useState('')
-	const textareaRef = useRef<HTMLTextAreaElement>(null)
+export interface ChatInputRef {
+	focus: () => void
+}
+
+export const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
+	(
+		{
+			onSend,
+			disabled = false,
+			placeholder = 'Digite sua mensagem...',
+			className,
+			centered = false,
+		},
+		ref
+	) => {
+		const [message, setMessage] = useState('')
+		const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+		useImperativeHandle(ref, () => ({
+			focus: () => {
+				textareaRef.current?.focus()
+			},
+		}))
 
 	const adjustTextareaHeight = () => {
 		const textarea = textareaRef.current
@@ -42,11 +64,12 @@ export function ChatInput({
 		onSend(trimmedMessage)
 		setMessage('')
 
-		setTimeout(() => {
+		requestAnimationFrame(() => {
 			if (textareaRef.current) {
 				textareaRef.current.style.height = 'auto'
+				textareaRef.current.focus()
 			}
-		}, 0)
+		})
 	}
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -123,4 +146,4 @@ export function ChatInput({
 			</form>
 		</div>
 	)
-}
+})

@@ -7,14 +7,12 @@ import {
 	type SendMessagePayload,
 } from './api'
 
-// Query keys
 export const proscoutAIKeys = {
 	all: ['proscout-ai'] as const,
 	conversations: () => [...proscoutAIKeys.all, 'conversations'] as const,
 	conversation: (id: string) => [...proscoutAIKeys.all, 'conversation', id] as const,
 }
 
-// Hooks
 export function useConversations() {
 	return useQuery({
 		queryKey: proscoutAIKeys.conversations(),
@@ -36,9 +34,7 @@ export function useSendMessage() {
 	return useMutation({
 		mutationFn: (payload: SendMessagePayload) => sendMessage(payload),
 		onSuccess: (data) => {
-			// Invalidate conversations list
 			queryClient.invalidateQueries({ queryKey: proscoutAIKeys.conversations() })
-			// Invalidate specific conversation
 			queryClient.invalidateQueries({
 				queryKey: proscoutAIKeys.conversation(data.conversationId),
 			})
@@ -52,7 +48,6 @@ export function useDeleteConversation() {
 	return useMutation({
 		mutationFn: (id: string) => deleteConversation(id),
 		onSuccess: () => {
-			// Invalidate conversations list
 			queryClient.invalidateQueries({ queryKey: proscoutAIKeys.conversations() })
 		},
 	})

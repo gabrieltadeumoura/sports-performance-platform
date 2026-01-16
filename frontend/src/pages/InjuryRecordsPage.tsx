@@ -214,7 +214,7 @@ export function InjuryRecordsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold bg-linear-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Lesões</h2>
@@ -227,7 +227,7 @@ export function InjuryRecordsPage() {
         </Button>
       </div>
 
-      {/* Search */}
+      
       <Card padding="sm">
         <CardContent>
           <Input
@@ -239,7 +239,7 @@ export function InjuryRecordsPage() {
         </CardContent>
       </Card>
 
-      {/* Content */}
+      
       {isLoading ? (
         <Card>
           <CardContent className="py-12">
@@ -269,7 +269,7 @@ export function InjuryRecordsPage() {
         </Card>
       ) : (
         <>
-          {/* Desktop Table */}
+          
           <div className="hidden lg:block">
             <Table>
               <TableHeader>
@@ -340,7 +340,7 @@ export function InjuryRecordsPage() {
             </Table>
           </div>
 
-          {/* Mobile/Tablet Cards */}
+          
           <div className="grid gap-4 lg:hidden">
             {filteredRecords.map((record) => {
               const severityConfig = getSeverityBadge(record.severity)
@@ -397,7 +397,7 @@ export function InjuryRecordsPage() {
         </>
       )}
 
-      {/* Create Dialog */}
+      
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -412,7 +412,7 @@ export function InjuryRecordsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      
       <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
         <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -430,7 +430,7 @@ export function InjuryRecordsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
+      
       <Dialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
         <DialogContent>
           <DialogHeader>

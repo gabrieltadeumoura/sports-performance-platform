@@ -155,7 +155,7 @@ export function AthletesPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold bg-linear-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Pacientes</h2>
@@ -168,7 +168,7 @@ export function AthletesPage() {
         </Button>
       </div>
 
-      {/* Filters */}
+      
       <Card padding="sm">
         <CardContent>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -216,7 +216,7 @@ export function AthletesPage() {
         </Card>
       ) : (
         <>
-          {/* Desktop Table */}
+          
           <div className="hidden md:block">
             <Table>
               <TableHeader>
@@ -291,7 +291,7 @@ export function AthletesPage() {
             </Table>
           </div>
 
-          {/* Mobile Cards */}
+          
           <div className="grid gap-4 md:hidden">
             {filteredAthletes.map((athlete) => {
               const age = athlete.birthDate
@@ -348,14 +348,14 @@ export function AthletesPage() {
             })}
           </div>
 
-          {/* Results count */}
+          
           <p className="text-sm text-secondary-500 text-center">
             Mostrando {filteredAthletes.length} de {athletes.length} pacientes
           </p>
         </>
       )}
 
-      {/* Create Dialog */}
+      
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
@@ -370,7 +370,7 @@ export function AthletesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      
       <Dialog open={!!editingAthlete} onOpenChange={(open) => !open && setEditingAthlete(null)}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
@@ -388,7 +388,7 @@ export function AthletesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      
       <Dialog open={!!deletingAthlete} onOpenChange={(open) => !open && setDeletingAthlete(null)}>
         <DialogContent>
           <DialogHeader>

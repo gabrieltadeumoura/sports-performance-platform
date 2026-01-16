@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-// Message schema
 export const messageSchema = z.object({
 	message: z
 		.string()
@@ -11,7 +10,6 @@ export const messageSchema = z.object({
 
 export type MessageFormData = z.infer<typeof messageSchema>
 
-// Conversation schema
 export const conversationSchema = z.object({
 	title: z
 		.string()
