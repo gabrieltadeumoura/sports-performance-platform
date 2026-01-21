@@ -1,4 +1,5 @@
 import User from '#models/user'
+import { DateTime } from 'luxon'
 import type { UserPermissionEnum } from '../enums/user_permission_enum.js'
 import { HashHelper } from '../utils/hash_password.js'
 
@@ -7,6 +8,7 @@ export class UserService {
 		name: string
 		email: string
 		password: string
+		acceptedTerms: boolean
 	}): Promise<User> {
 		const existingUser = await User.findBy('email', payload.email)
 		if (existingUser) {
@@ -17,6 +19,13 @@ export class UserService {
 		user.name = payload.name
 		user.email = payload.email
 		user.password = await HashHelper.make(payload.password)
+
+		if (payload.acceptedTerms) {
+			user.acceptedTermsAt = DateTime.now()
+			user.acceptedPrivacyAt = DateTime.now()
+			user.termsVersion = '1.0.0'
+			user.privacyVersion = '1.0.0'
+		}
 
 		await user.save()
 

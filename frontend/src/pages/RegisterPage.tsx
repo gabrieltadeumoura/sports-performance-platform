@@ -16,6 +16,9 @@ const registerSchema = z
     email: z.string().email('Digite um e-mail valido'),
     password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
     confirmPassword: z.string().min(6, 'A confirmacao deve ter pelo menos 6 caracteres'),
+    acceptedTerms: z.boolean().refine((val) => val === true, {
+      message: 'Você deve aceitar os Termos de Serviço e Política de Privacidade',
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ['confirmPassword'],
@@ -41,6 +44,7 @@ export function RegisterPage() {
       email: '',
       password: '',
       confirmPassword: '',
+      acceptedTerms: false,
     },
   })
 
@@ -49,6 +53,7 @@ export function RegisterPage() {
       name: values.name,
       email: values.email,
       password: values.password,
+      acceptedTerms: values.acceptedTerms,
     }
 
     registerMutation.mutate(payload, {
@@ -151,22 +156,38 @@ export function RegisterPage() {
               {...register('confirmPassword')}
             />
 
-            <div className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                id="terms"
-                className="mt-1 h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label htmlFor="terms" className="text-sm text-secondary-600">
-                Eu concordo com os{' '}
-                <Link to="/terms" className="text-primary-600 hover:text-primary-700">
-                  Termos de Servico
-                </Link>{' '}
-                e{' '}
-                <Link to="/privacy" className="text-primary-600 hover:text-primary-700">
-                  Politica de Privacidade
-                </Link>
-              </label>
+            <div>
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  className="mt-1 h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                  {...register('acceptedTerms')}
+                />
+                <label htmlFor="terms" className="text-sm text-secondary-600">
+                  Eu concordo com os{' '}
+                  <Link
+                    to="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:text-primary-700 underline"
+                  >
+                    Termos de Servico
+                  </Link>{' '}
+                  e{' '}
+                  <Link
+                    to="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:text-primary-700 underline"
+                  >
+                    Politica de Privacidade
+                  </Link>
+                </label>
+              </div>
+              {errors.acceptedTerms && (
+                <p className="mt-1 text-sm text-danger-600">{errors.acceptedTerms.message}</p>
+              )}
             </div>
 
             <Button

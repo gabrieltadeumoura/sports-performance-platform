@@ -22,6 +22,18 @@ export default class User extends BaseModel {
 	@column({ serializeAs: null })
 	declare password: string
 
+	@column.dateTime()
+	declare acceptedTermsAt: DateTime | null
+
+	@column.dateTime()
+	declare acceptedPrivacyAt: DateTime | null
+
+	@column()
+	declare termsVersion: string | null
+
+	@column()
+	declare privacyVersion: string | null
+
 	@column.dateTime({ autoCreate: true })
 	declare createdAt: DateTime
 

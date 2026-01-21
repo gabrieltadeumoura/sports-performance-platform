@@ -11,10 +11,16 @@ import { SpinePage } from '../pages/SpinePage'
 import { TreatmentsPage } from '../pages/TreatmentsPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { ProscoutAIPage } from '../pages/ProscoutAIPage'
+import { TermsPage } from '../pages/TermsPage'
+import { PrivacyPage } from '../pages/PrivacyPage'
 
 export function AppRouter() {
   return (
     <Routes>
+      {/* Public routes - Legal pages */}
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

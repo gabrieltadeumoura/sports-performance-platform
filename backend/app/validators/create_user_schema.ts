@@ -15,4 +15,5 @@ export const createUserSchema = vine.object({
 			return !match
 		}),
 	password: vine.string().minLength(6),
+	acceptedTerms: vine.accepted(),
 })
