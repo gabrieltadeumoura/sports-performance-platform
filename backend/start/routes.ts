@@ -30,6 +30,8 @@ const QuestionnaireResponsesController = () =>
 const AppointmentsController = () =>
 	import('#controllers/appointments_controller')
 const ReportsController = () => import('#controllers/reports_controller')
+const ChatController = () => import('#controllers/chat_controller')
+const ProscoutAIController = () => import('#controllers/proscout_ai_controller')
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
@@ -301,6 +303,23 @@ router
 				])
 			})
 			.prefix('/reports')
+
+		router
+			.group(() => {
+				router.post('/', [ChatController, 'send'])
+				router.get('/history', [ChatController, 'history'])
+				router.get('/conversations', [ChatController, 'conversations'])
+			})
+			.prefix('/v1/chat')
+
+		router
+			.group(() => {
+				router.post('/messages', [ProscoutAIController, 'sendMessage'])
+				router.get('/conversations', [ProscoutAIController, 'getConversations'])
+				router.get('/conversations/:id', [ProscoutAIController, 'getConversation'])
+				router.delete('/conversations/:id', [ProscoutAIController, 'deleteConversation'])
+			})
+			.prefix('/proscout-ai')
 	})
 	.prefix('/api')
 	.use(middleware.auth())

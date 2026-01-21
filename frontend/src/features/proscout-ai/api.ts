@@ -26,17 +26,17 @@ export type SendMessageResponse = {
 }
 
 export async function sendMessage(payload: SendMessagePayload): Promise<SendMessageResponse> {
-	return await apiClient.post<SendMessageResponse>('/proscout-ai/messages', payload)
+	return await apiClient.post<SendMessageResponse>('/api/proscout-ai/messages', payload)
 }
 
 export async function getConversations(): Promise<ChatConversation[]> {
-	return await apiClient.get<ChatConversation[]>('/proscout-ai/conversations')
+	return await apiClient.get<ChatConversation[]>('/api/proscout-ai/conversations')
 }
 
 export async function getConversation(id: string): Promise<ChatConversation> {
-	return await apiClient.get<ChatConversation>(`/proscout-ai/conversations/${id}`)
+	return await apiClient.get<ChatConversation>(`/api/proscout-ai/conversations/${id}`)
 }
 
 export async function deleteConversation(id: string): Promise<void> {
-	await apiClient.delete(`/proscout-ai/conversations/${id}`)
+	await apiClient.delete(`/api/proscout-ai/conversations/${id}`)
 }

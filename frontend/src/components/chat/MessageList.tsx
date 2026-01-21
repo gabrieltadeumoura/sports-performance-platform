@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { Bot } from 'lucide-react'
 import { ChatMessage, type Message } from './ChatMessage'
 import { cn } from '../../lib/utils'
@@ -10,24 +10,57 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, isLoading = false, className }: MessageListProps) {
-	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const containerRef = useRef<HTMLDivElement>(null)
+	const contentRef = useRef<HTMLDivElement>(null)
+	const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
 
-	const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
-		messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' })
-	}
+	const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
+		if (containerRef.current) {
+			containerRef.current.scrollTo({
+				top: containerRef.current.scrollHeight,
+				behavior,
+			})
+		}
+	}, [])
 
-	useEffect(() => {
-		scrollToBottom('auto')
+	const checkIfUserScrolledUp = useCallback(() => {
+		if (!containerRef.current) return false
+		const { scrollTop, scrollHeight, clientHeight } = containerRef.current
+		const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+		return distanceFromBottom > 100
 	}, [])
 
 	useEffect(() => {
-		if (messages.length > 0) {
-			setTimeout(() => {
-				scrollToBottom('smooth')
-			}, 100)
+		const container = containerRef.current
+		if (!container) return
+
+		const handleScroll = () => {
+			const isScrolledUp = checkIfUserScrolledUp()
+			setShouldAutoScroll(!isScrolledUp)
 		}
-	}, [messages.length])
+
+		container.addEventListener('scroll', handleScroll)
+		return () => container.removeEventListener('scroll', handleScroll)
+	}, [checkIfUserScrolledUp])
+
+	useEffect(() => {
+		if (shouldAutoScroll) {
+			scrollToBottom('auto')
+		}
+	}, [messages, shouldAutoScroll, scrollToBottom])
+
+	useEffect(() => {
+		if (!contentRef.current || !shouldAutoScroll) return
+
+		const resizeObserver = new ResizeObserver(() => {
+			if (shouldAutoScroll) {
+				scrollToBottom('auto')
+			}
+		})
+
+		resizeObserver.observe(contentRef.current)
+		return () => resizeObserver.disconnect()
+	}, [shouldAutoScroll, scrollToBottom])
 
 	return (
 		<div
@@ -38,7 +71,7 @@ export function MessageList({ messages, isLoading = false, className }: MessageL
 				className
 			)}
 		>
-			<div className="mx-auto max-w-3xl py-4">
+			<div ref={contentRef} className="mx-auto max-w-3xl py-4">
 				{messages.map((message, index) => (
 					<ChatMessage
 						key={message.id}
@@ -57,9 +90,7 @@ export function MessageList({ messages, isLoading = false, className }: MessageL
 							</div>
 							<div className="flex-1 space-y-2">
 								<div className="flex items-center gap-2">
-									<span className="text-sm font-semibold text-secondary-900">
-										ProscoutAI
-									</span>
+									<span className="text-sm font-semibold text-secondary-900">ProscoutAI</span>
 									<span className="text-xs text-secondary-400">digitando...</span>
 								</div>
 								<div className="flex gap-1.5">
@@ -71,8 +102,6 @@ export function MessageList({ messages, isLoading = false, className }: MessageL
 						</div>
 					</div>
 				)}
-
-				<div ref={messagesEndRef} />
 			</div>
 		</div>
 	)

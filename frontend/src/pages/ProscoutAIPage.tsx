@@ -11,11 +11,13 @@ import { Button } from '../components/ui/button'
 import { Separator } from '../components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip'
 import { cn } from '../lib/utils'
+import { useSendMessage } from '../features/proscout-ai/hooks'
 
 export function ProscoutAIPage() {
 	const [messages, setMessages] = useState<Message[]>([])
-	const [isLoading, setIsLoading] = useState(false)
+	const [conversationId, setConversationId] = useState<string | undefined>(undefined)
 	const chatInputRef = useRef<ChatInputRef>(null)
+	const sendMessageMutation = useSendMessage()
 
 	const getGreeting = useCallback(() => {
 		const hour = new Date().getHours()
@@ -27,7 +29,7 @@ export function ProscoutAIPage() {
 	const isEmpty = messages.length === 0
 
 	const handleSendMessage = useCallback(
-		(content: string) => {
+		async (content: string) => {
 			const userMessage: Message = {
 				id: Date.now().toString(),
 				role: 'user',
@@ -36,35 +38,56 @@ export function ProscoutAIPage() {
 			}
 
 			setMessages((prev) => [...prev, userMessage])
-			setIsLoading(true)
 
 			setTimeout(() => {
 				chatInputRef.current?.focus()
 			}, 150)
 
-			setTimeout(() => {
+			try {
+				const response = await sendMessageMutation.mutateAsync({
+					conversationId,
+					message: content,
+				})
+
+				// Salva o conversationId para próximas mensagens
+				if (!conversationId) {
+					setConversationId(response.conversationId)
+				}
+
+				// Adiciona a resposta do assistente
 				const assistantMessage: Message = {
-					id: (Date.now() + 1).toString(),
+					id: response.message.id,
 					role: 'assistant',
-					content:
-						'Obrigado pela sua pergunta! Esta é uma versão de demonstração do chat. Em breve, estarei totalmente funcional para responder suas perguntas sobre tratamentos, análises de dados de atletas, recomendações personalizadas e muito mais.',
-					timestamp: new Date(),
+					content: response.message.content,
+					timestamp: new Date(response.message.timestamp),
 				}
 
 				setMessages((prev) => [...prev, assistantMessage])
-				setIsLoading(false)
 
 				setTimeout(() => {
 					chatInputRef.current?.focus()
 				}, 150)
-			}, 1500)
+			} catch (error) {
+				console.error('Erro ao enviar mensagem:', error)
+
+				// Mostra mensagem de erro
+				const errorMessage: Message = {
+					id: (Date.now() + 1).toString(),
+					role: 'assistant',
+					content:
+						'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.',
+					timestamp: new Date(),
+				}
+
+				setMessages((prev) => [...prev, errorMessage])
+			}
 		},
-		[chatInputRef]
+		[conversationId, sendMessageMutation, chatInputRef]
 	)
 
 	const handleNewConversation = useCallback(() => {
 		setMessages([])
-		setIsLoading(false)
+		setConversationId(undefined)
 		setTimeout(() => {
 			chatInputRef.current?.focus()
 		}, 100)
@@ -78,7 +101,7 @@ export function ProscoutAIPage() {
 
 	return (
 		<TooltipProvider>
-			<div className="flex h-full items-center justify-center bg-secondary-50 p-4">
+			<div className="flex h-full max-h-[calc(100vh-2rem)] items-center justify-center overflow-hidden bg-secondary-50 p-4">
 				<div
 					className={cn(
 						'flex h-full w-full max-w-5xl flex-col overflow-hidden',
@@ -124,7 +147,7 @@ export function ProscoutAIPage() {
 						</>
 					)}
 
-					<div className="flex flex-1 min-h-[400px] flex-col">
+					<div className="flex flex-1 flex-col overflow-hidden max-h-[600px]">
 						{isEmpty ? (
 							<EmptyState
 								greeting={greeting}
@@ -134,7 +157,7 @@ export function ProscoutAIPage() {
 						) : (
 							<ChatArea
 								messages={messages}
-								isLoading={isLoading}
+								isLoading={sendMessageMutation.isPending}
 								onSend={handleSendMessage}
 								chatInputRef={chatInputRef}
 							/>
@@ -154,7 +177,7 @@ interface EmptyStateProps {
 
 function EmptyState({ greeting, onSend, chatInputRef }: EmptyStateProps) {
 	return (
-		<div className="flex flex-1 flex-col items-center justify-center px-4">
+		<div className="flex flex-1 flex-col items-center justify-center px-4 pt-4">
 			<WelcomeScreen greeting={greeting} />
 			<div className="w-full max-w-3xl mt-8">
 				<ChatInput
@@ -165,7 +188,7 @@ function EmptyState({ greeting, onSend, chatInputRef }: EmptyStateProps) {
 				/>
 			</div>
 			<div className="mt-4">
-				<p className="text-xs text-secondary-500">
+				<p className="text-xs text-secondary-500 my-4">
 					ProscoutAI pode cometer erros. Verifique informações importantes.
 				</p>
 			</div>
@@ -183,9 +206,7 @@ interface ChatAreaProps {
 function ChatArea({ messages, isLoading, onSend, chatInputRef }: ChatAreaProps) {
 	return (
 		<>
-			<div className="flex-1 min-h-[400px] overflow-y-auto overflow-x-hidden bg-white">
-				<MessageList messages={messages} isLoading={isLoading} />
-			</div>
+			<MessageList messages={messages} isLoading={isLoading} className="flex-1" />
 
 			<Separator />
 
